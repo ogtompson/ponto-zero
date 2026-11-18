@@ -1,0 +1,91 @@
+# =====================================================================
+# PontoZero: aplicação + banco de dados com Docker Compose
+#
+#   docker compose up -d      liga tudo (baixa as imagens do Docker Hub)
+#   http://localhost:8080     abre o PontoZero
+#   docker compose down       desliga (os dados ficam no volume pgdata)
+#   docker compose down -v    desliga E apaga o volume (volta do zero)
+#
+# Três imagens publicadas no Docker Hub:
+#   db  -> PostgreSQL com o modelo, as views e a carga de dados reais
+#   api -> Python/FastAPI
+#   web -> React servido pelo Nginx, que repassa /api para a API
+# Nenhum .env é obrigatório: todos os valores abaixo têm padrão.
+# =====================================================================
+name: pontozero
+
+services:
+  db:
+    image: ${DOCKERHUB_USER:-ogabrieltenorio}/pontozero-db:${TAG:-1.0}
+    container_name: pontozero-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pontozero}
+      POSTGRES_USER: ${POSTGRES_USER:-pontozero}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pontozero_admin}
+      APP_DB_USER: ${APP_DB_USER:-pontozero_app}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-pontozero_app}
+      TZ: America/Recife
+    volumes:
+      # volume nomeado: os dados sobrevivem a "docker compose down" e "up"
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      # porta alta para não brigar com um Postgres já instalado na máquina;
+      # serve para abrir o banco no pgAdmin/DBeaver (localhost:55432)
+      - "${DB_PORTA:-55432}:5432"
+    networks:
+      - rede-dados
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h 127.0.0.1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 30s
+
+  api:
+    image: ${DOCKERHUB_USER:-ogabrieltenorio}/pontozero-api:${TAG:-1.0}
+    container_name: pontozero-api
+    restart: unless-stopped
+    environment:
+      # "db" é o nome do serviço acima: o Docker resolve para o IP do container
+      DATABASE_URL: postgresql://${APP_DB_USER:-pontozero_app}:${APP_DB_PASSWORD:-pontozero_app}@db:5432/${POSTGRES_DB:-pontozero}
+      JWT_SECRET: ${JWT_SECRET:-troque-este-segredo}
+      APP_VERSION: ${TAG:-1.0}
+      TZ: America/Recife
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - rede-dados
+      - rede-app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3).status == 200 else 1)"]
+      interval: 10s
+      timeout: 4s
+      retries: 10
+      start_period: 15s
+
+  web:
+    image: ${DOCKERHUB_USER:-ogabrieltenorio}/pontozero-web:${TAG:-1.0}
+    container_name: pontozero-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORTA:-8080}:8080"
+    networks:
+      - rede-app
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/saude"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+# Duas redes: o web só enxerga a api, e só a api enxerga o banco.
+networks:
+  rede-app:
+  rede-dados:
+
+volumes:
+  pgdata:
