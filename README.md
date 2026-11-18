@@ -3,14 +3,14 @@
 </p>
 
 <p align="center">
-  Mapa vivo de oportunidades: compare bairros do Recife e veja onde a oferta do seu segmento parece menor que a demanda.
+  Compare bairros do Recife e investigue como a oferta observada do seu segmento se relaciona com a referência municipal.
 </p>
 
 <p align="center">
   Projeto final de <b>Infraestrutura de Software</b> e <b>Banco de Dados</b>, CESAR School, 2026.2
 </p>
 
-![Análise de demanda e oferta](docs/img/analise.png)
+![Oferta observada e referência municipal](docs/img/analise.png)
 
 ## Rodar em um comando
 
