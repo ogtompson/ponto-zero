@@ -128,9 +128,17 @@ export type RespostaOferta = {
     populacao: number | null;
     por_10k_hab: number | null;
     mensagem: string | null;
+    status_dado: "observado" | "sem_registro_observado";
   }[];
   estabelecimentos: Estabelecimento[];
+  qualidade: QualidadeOferta;
   aviso: string;
+};
+
+export type QualidadeOferta = {
+  cobertura: "parcial" | "verificada";
+  zero_confirmado: boolean;
+  descricao: string;
 };
 
 export type Fonte = { fonte: string; data_texto: string; usada_em: string[] };
@@ -149,13 +157,14 @@ export type RespostaComparacao = {
     fonte: string;
     data_texto: string;
     metrica: string;
-    valores: { id_regiao: number; quantidade: number; por_10k_hab: number | null; mensagem: string | null }[];
+    qualidade: QualidadeOferta;
+    valores: { id_regiao: number; quantidade: number; por_10k_hab: number | null; mensagem: string | null; status_dado: "observado" | "sem_registro_observado" }[];
   };
   fontes: Fonte[];
   avisos: string[];
 };
 
-export type Classificacao = "possivel_lacuna" | "sem_indicio" | "nao_classificada";
+export type Classificacao = "oferta_observada_baixa" | "oferta_observada_compativel" | "nao_classificada";
 
 export type RespostaAnalise = {
   segmento: Segmento;
@@ -171,7 +180,10 @@ export type RespostaAnalise = {
     classificacao: Classificacao;
     rotulo: string;
     motivo: string;
+    status_dado: "observado" | "sem_registro_observado";
+    zero_confirmado: boolean;
   }[];
+  qualidade_oferta: QualidadeOferta;
   fontes: Fonte[];
   avisos: string[];
 };

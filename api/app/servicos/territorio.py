@@ -124,14 +124,32 @@ def regioes_validas(ids: list[int], minimo: int = 1, mensagem_minimo: str | None
 def metadados_oferta() -> dict:
     """Fonte e data da camada de oferta ficam no COMMENT da tabela estabelecimento."""
     linha = consulta_um("SELECT obj_description('estabelecimento'::regclass, 'pg_class') AS c")
-    meta = {"fonte": None, "data_referencia": None}
+    meta = {"fonte": None, "data_referencia": None, "cobertura": "parcial"}
     for parte in (linha["c"] or "").split(";"):
         if "=" in parte:
             k, v = parte.split("=", 1)
             meta[k.strip()] = v.strip() or None
     if not meta["fonte"]:
         meta["fonte"] = "Fonte não identificada"
+    # A coleta do OpenStreetMap não comprova que um bairro sem registros tenha
+    # oferta igual a zero. Até existir uma medição de cobertura por região e
+    # categoria, a API trata a camada como observacional e parcial.
+    if meta["cobertura"] not in {"parcial", "verificada"}:
+        meta["cobertura"] = "parcial"
     return meta
+
+
+def qualidade_oferta(meta: dict) -> dict:
+    verificada = meta["cobertura"] == "verificada"
+    return {
+        "cobertura": meta["cobertura"],
+        "zero_confirmado": verificada,
+        "descricao": (
+            "Cobertura verificada para o recorte analisado."
+            if verificada
+            else "Cobertura parcial: ausência de registro não confirma ausência de estabelecimentos."
+        ),
+    }
 
 
 def catalogo_indicadores() -> list[dict]:
@@ -212,7 +230,8 @@ def oferta(id_categoria: int | None, ids: list[int]) -> dict:
                     "por_10k_hab": float(l["por_10k_hab"]) if l and l["por_10k_hab"] is not None else None,
                     "mensagem": None
                     if qtd
-                    else "nenhum estabelecimento encontrado nos dados disponíveis",
+                    else "nenhum estabelecimento observado na base; a cobertura é parcial",
+                    "status_dado": "observado" if qtd else "sem_registro_observado",
                 }
             )
         filtro = "AND e.id_regiao = ANY(%s)"
@@ -242,6 +261,7 @@ def oferta(id_categoria: int | None, ids: list[int]) -> dict:
         "metrica": "estabelecimentos por 10 mil habitantes",
         "regioes": resumo,
         "estabelecimentos": pontos,
+        "qualidade": qualidade_oferta(meta),
         "aviso": AVISO_OFERTA,
     }
 
@@ -291,8 +311,9 @@ def comparacao(id_categoria: int | None, ids: list[int]) -> dict:
             "fonte": o["fonte"],
             "data_texto": o["data_texto"],
             "metrica": o["metrica"],
+            "qualidade": o["qualidade"],
             "valores": [
-                {k: r[k] for k in ("id_regiao", "quantidade", "por_10k_hab", "mensagem")} for r in o["regioes"]
+                {k: r[k] for k in ("id_regiao", "quantidade", "por_10k_hab", "mensagem", "status_dado")} for r in o["regioes"]
             ],
         }
 
@@ -335,9 +356,19 @@ def analise(id_categoria: int | None, ids: list[int]) -> dict:
         (seg["id_categoria"], ids, config.analise_min_esperado, config.analise_cobertura_max),
     )
     por_id = {l["id_regiao"]: l for l in linhas}
+    meta = metadados_oferta()
+    cobertura_verificada = meta["cobertura"] == "verificada"
     resultados = []
     for r in regioes:
         l = por_id[r["id_regiao"]]
+        classificacao_interna = l["classificacao"]
+        classificacao = {
+            "possivel_lacuna": "oferta_observada_baixa",
+            "sem_indicio": "oferta_observada_compativel",
+            "oferta_observada_baixa": "oferta_observada_baixa",
+            "oferta_observada_compativel": "oferta_observada_compativel",
+            "nao_classificada": "nao_classificada",
+        }[classificacao_interna]
         resultados.append(
             {
                 "id_regiao": r["id_regiao"],
@@ -346,43 +377,44 @@ def analise(id_categoria: int | None, ids: list[int]) -> dict:
                 "encontrados": l["encontrados"],
                 "esperado": float(l["esperado"]) if l["esperado"] is not None else None,
                 "cobertura": float(l["cobertura"]) if l["cobertura"] is not None else None,
-                "classificacao": l["classificacao"],
+                "classificacao": classificacao,
                 "rotulo": {
-                    "possivel_lacuna": "Possível lacuna (hipótese)",
-                    "sem_indicio": "Sem indício de lacuna",
-                    "nao_classificada": "Não classificada",
-                }[l["classificacao"]],
+                    "oferta_observada_baixa": "Oferta observada abaixo da referência",
+                    "oferta_observada_compativel": "Oferta observada próxima ou acima da referência",
+                    "nao_classificada": "Comparação indisponível",
+                }[classificacao],
                 "motivo": l["motivo"].replace(".", ","),
+                "status_dado": "observado" if l["encontrados"] else "sem_registro_observado",
+                "zero_confirmado": cobertura_verificada,
             }
         )
 
-    meta = metadados_oferta()
     pop_fonte = consulta_um(
         "SELECT fonte, data_referencia FROM indicador WHERE tipo = 'populacao' ORDER BY data_referencia DESC LIMIT 1"
     )
     ref = seg["por_10k_hab"]
     criterios = [
         {
-            "nome": "Demanda potencial",
-            "regra": "População residente da região",
+            "nome": "Base populacional",
+            "regra": "População residente usada apenas para normalizar a comparação",
         },
         {
-            "nome": "Oferta local",
-            "regra": f"Estabelecimentos de {seg['nome'].lower()} encontrados na região",
+            "nome": "Oferta observada",
+            "regra": f"Registros de {seg['nome'].lower()} encontrados na base para a região",
         },
         {
             "nome": "Referência da cidade",
             "regra": f"{_br(ref, 2)} estabelecimentos por 10 mil habitantes no Recife",
         },
         {
-            "nome": "Esperado",
+            "nome": "Referência proporcional",
             "regra": "Referência × população ÷ 10 mil",
         },
         {
-            "nome": "Possível lacuna",
+            "nome": "Oferta observada abaixo da referência",
             "regra": (
-                f"Esperado de pelo menos {_br(config.analise_min_esperado, 0)} estabelecimentos "
-                f"e encontrados até {int(config.analise_cobertura_max * 100)}% do esperado"
+                f"Referência proporcional de pelo menos {_br(config.analise_min_esperado, 0)} registros "
+                f"e oferta observada de até {int(config.analise_cobertura_max * 100)}% dessa referência"
             ),
         },
     ]
@@ -395,6 +427,7 @@ def analise(id_categoria: int | None, ids: list[int]) -> dict:
         },
         "criterios": criterios,
         "resultados": resultados,
+        "qualidade_oferta": qualidade_oferta(meta),
         # RN06: fontes usadas no cálculo
         "fontes": [
             {"fonte": pop_fonte["fonte"], "data_texto": _data(pop_fonte["data_referencia"]) or SEM_DATA, "usada_em": ["População"]},

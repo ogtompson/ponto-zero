@@ -28,7 +28,8 @@ AVISO_APROXIMACAO = (
     "não demonstram demanda não atendida."
 )
 AVISO_OFERTA = (
-    "A quantidade de estabelecimentos é uma aproximação e depende da cobertura da fonte."
+    "A oferta mostra registros observados em uma fonte de cobertura parcial. "
+    "Ausência de registro não confirma ausência de estabelecimentos."
 )
 AVISO_NAO_RECOMENDACAO = (
     "Este resultado não é recomendação definitiva de investimento e não substitui "

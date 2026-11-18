@@ -62,6 +62,6 @@ def comparacao(regioes: str, segmento: int | None = None):
     return t.comparacao(segmento, t.ids_da_query(regioes))
 
 
-@router.get("/analise", summary="Relação entre demanda e oferta (HU-009)")
+@router.get("/analise", summary="Oferta observada e referência municipal (HU-009)")
 def analise(segmento: int | None = None, regioes: str | None = None):
     return t.analise(segmento, t.ids_da_query(regioes))

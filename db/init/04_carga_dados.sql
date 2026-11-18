@@ -1131,7 +1131,7 @@ JOIN regiao r ON r.nome = v.bairro AND r.cidade = 'Recife'
 JOIN categoria c ON c.nome = v.categoria;
 
 -- Metadados da camada de oferta (lidos pela API para exibir fonte e data - HU-007)
-COMMENT ON TABLE estabelecimento IS 'fonte=OpenStreetMap, contribuidores (licença ODbL);data_referencia=2026-11-17';
+COMMENT ON TABLE estabelecimento IS 'fonte=OpenStreetMap, contribuidores (licença ODbL);data_referencia=2026-11-17;cobertura=parcial';
 
 -- Empresa e usuario de demonstracao (login: demo@pontozero.app / pontozero2026)
 INSERT INTO empresa (nome, cnpj, segmento) VALUES ('Rede Farma Nordeste (demonstração)', NULL, 'Farmácia');

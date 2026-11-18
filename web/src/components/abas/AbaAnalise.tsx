@@ -1,5 +1,5 @@
-// HU-009: análise inicial da relação entre demanda e oferta.
-// Regras e fontes ficam visíveis; o resultado é sempre hipótese, nunca recomendação.
+// HU-009: comparação da oferta observada com a referência municipal.
+// Regras, qualidade e fontes ficam visíveis; o resultado nunca é recomendação.
 import { useAnalise } from "@/hooks/dados";
 import type { Classificacao } from "@/lib/api";
 import { num } from "@/lib/formato";
@@ -12,8 +12,8 @@ import { Vazio } from "../Vazio";
 import { Carregando } from "./AbaIndicadores";
 
 const SELO: Record<Classificacao, string> = {
-  possivel_lacuna: "bg-ouro text-marinho",
-  sem_indicio: "bg-secondary text-tinta-suave",
+  oferta_observada_baixa: "bg-ouro text-marinho",
+  oferta_observada_compativel: "bg-secondary text-tinta-suave",
   nao_classificada: "hachura text-tinta-suave",
 };
 
@@ -36,6 +36,7 @@ export function AbaAnalise() {
   return (
     <div className="flex flex-col gap-4 p-4">
       <Aviso forte>{naoRecomendacao}</Aviso>
+      <Aviso>{d.qualidade_oferta.descricao}</Aviso>
       <div className="flex flex-col gap-4 xl:flex-row">
         <ul className="grid flex-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3">
           {d.resultados.map((r) => (
@@ -43,7 +44,7 @@ export function AbaAnalise() {
               key={r.id_regiao}
               className={cn(
                 "rounded-lg border bg-white p-4",
-                r.classificacao === "possivel_lacuna" ? "border-ouro shadow-[inset_4px_0_0_#DDBA43]" : "border-nevoa",
+                r.classificacao === "oferta_observada_baixa" ? "border-ouro" : "border-nevoa",
               )}
             >
               <div className="flex items-start justify-between gap-2">
@@ -58,11 +59,14 @@ export function AbaAnalise() {
                   <>Motivo: {r.motivo}</>
                 ) : (
                   <>
-                    <strong className="text-marinho numeros">{num(r.encontrados)}</strong> encontrado{r.encontrados === 1 ? "" : "s"} para{" "}
-                    <strong className="text-marinho numeros">{num(r.esperado, 1)}</strong> esperado{r.esperado === 1 ? "" : "s"} em {num(r.populacao)} moradores
+                    <strong className="text-marinho numeros">{num(r.encontrados)}</strong> registro{r.encontrados === 1 ? "" : "s"} observado{r.encontrados === 1 ? "" : "s"} para uma referência proporcional de{" "}
+                    <strong className="text-marinho numeros">{num(r.esperado, 1)}</strong> em {num(r.populacao)} moradores
                   </>
                 )}
               </p>
+              {r.status_dado === "sem_registro_observado" && !r.zero_confirmado && (
+                <p className="mt-1.5 text-[12px] text-tinta-fraca">Sem registros na base. Isso não confirma oferta igual a zero.</p>
+              )}
             </li>
           ))}
         </ul>
@@ -78,12 +82,7 @@ export function AbaAnalise() {
               ))}
             </dl>
             <p className="mt-2 flex items-center gap-3 text-[12px] text-tinta-suave">
-              <span className="flex items-center gap-1">
-                <span className="inline-block size-3 rounded-full border-[1.5px] border-dashed border-marinho/45" /> esperado
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="inline-block size-3 rounded-full bg-ouro ring-[1.5px] ring-marinho" /> encontrado
-              </span>
+              Barras usam a mesma escala dentro de cada bairro.
             </p>
           </section>
           <section>

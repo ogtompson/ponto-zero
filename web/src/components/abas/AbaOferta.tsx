@@ -74,7 +74,7 @@ export function AbaOferta() {
           <FonteInfo fonte={d.fonte} data={d.data_referencia} rotulo="oferta comercial" />
         </p>
         <p className="text-[13px] text-tinta-suave">Extraído em {dataBr(d.data_referencia)}</p>
-        <Aviso>{d.aviso}</Aviso>
+        <Aviso>{d.qualidade.descricao}</Aviso>
       </aside>
     </div>
   );
