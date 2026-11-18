@@ -1,0 +1,11 @@
+.env
+node_modules/
+.venv/
+web/dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+pytest-cache-files-*/
+.vscode/
+.idea/
+.DS_Store
