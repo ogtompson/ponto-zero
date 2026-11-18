@@ -1,0 +1,15 @@
+# =====================================================================
+# Complemento para construir as imagens a partir do código-fonte.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+#
+# Usa os mesmos nomes de imagem do docker-compose.yml, então depois do build
+# um "docker compose push" envia as três para o Docker Hub.
+# =====================================================================
+services:
+  db:
+    build: ./db
+  api:
+    build: ./api
+  web:
+    build: ./web
