@@ -1,0 +1,137 @@
+@import "tailwindcss";
+@import "@fontsource-variable/archivo/wdth.css";
+@import "leaflet/dist/leaflet.css";
+
+/* ------------------------------------------------------------------
+   Identidade PontoZero
+   marinho  #19214A  tinta principal, contornos, botões
+   ouro     #DDBA43  "o ponto": só para o que está selecionado/destacado
+   papel    #F5F6FA  fundo frio (nada de creme)
+   névoa    #E3E6EF  linhas e divisórias
+   ------------------------------------------------------------------ */
+@theme {
+  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-marinho: #19214a;
+  --color-marinho-2: #2a3466;
+  --color-marinho-3: #3d4884;
+  --color-ouro: #ddba43;
+  --color-ouro-claro: #f6ecc6;
+  --color-ouro-escuro: #7d5f08;
+  --color-papel: #f5f6fa;
+  --color-nevoa: #e3e6ef;
+  --color-tinta: #19214a;
+  --color-tinta-suave: #596182;
+  --color-tinta-fraca: #8a90ab;
+  --color-cesar: #ff6002;
+
+  /* escala do mapa (sequencial em marinho) */
+  --color-escala-1: #eef0f7;
+  --color-escala-2: #c9cee3;
+  --color-escala-3: #98a2c9;
+  --color-escala-4: #5c69a3;
+  --color-escala-5: #2b3672;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+}
+
+/* aliases usados pelos componentes do registro 21st.dev / shadcn */
+@theme inline {
+  --color-background: var(--color-papel);
+  --color-foreground: var(--color-tinta);
+  --color-primary: var(--color-marinho);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #eceef5;
+  --color-secondary-foreground: var(--color-marinho);
+  --color-muted: #eceef5;
+  --color-muted-foreground: var(--color-tinta-suave);
+  --color-accent: #eceef5;
+  --color-accent-foreground: var(--color-marinho);
+  --color-popover: #ffffff;
+  --color-popover-foreground: var(--color-tinta);
+  --color-card: #ffffff;
+  --color-card-foreground: var(--color-tinta);
+  --color-border: var(--color-nevoa);
+  --color-input: #d5d9e6;
+  --color-ring: var(--color-ouro);
+  --color-destructive: #b42318;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-stretch: 100%;
+    color: var(--color-tinta);
+    background: var(--color-papel);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "kern";
+  }
+  body { min-height: 100dvh; }
+  :focus-visible {
+    outline: 2px solid var(--color-ouro);
+    outline-offset: 2px;
+  }
+  ::selection { background: var(--color-ouro-claro); }
+}
+
+/* Archivo tem eixo de largura: títulos usam a versão expandida,
+   que conversa com as letras largas da logo. */
+@utility larga {
+  font-stretch: 125%;
+}
+@utility semi-larga {
+  font-stretch: 112%;
+}
+@utility numeros {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------- mapa --------------------------- */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: #e9ecf3;
+}
+.leaflet-tooltip.pz-dica {
+  background: var(--color-marinho);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  box-shadow: 0 6px 20px rgb(25 33 74 / 0.25);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+.leaflet-tooltip.pz-dica::before { display: none; }
+.leaflet-popup-content-wrapper {
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgb(25 33 74 / 0.18);
+}
+.leaflet-popup-content { margin: 10px 14px; font-size: 13px; color: var(--color-tinta); }
+.leaflet-control-attribution { font-size: 10px; background: rgb(255 255 255 / 0.75) !important; }
+.leaflet-control-zoom a { color: var(--color-marinho) !important; }
+
+/* bairros aparecem a partir do Marco Zero na primeira carga */
+.pz-bairro { animation: pz-surge 700ms ease-out both; }
+@keyframes pz-surge {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+/* a animação fica num elemento interno: o externo é posicionado pelo Leaflet via transform */
+.pz-pino-in { display: block; animation: pz-pino 420ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both; transform-origin: 50% 100%; }
+@keyframes pz-pino {
+  from { transform: translateY(-14px) scale(0.6); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pz-bairro, .pz-pino-in { animation: none !important; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* padrão hachurado para "não classificada" */
+.hachura {
+  background-image: repeating-linear-gradient(135deg, #e3e6ef 0 6px, #f5f6fa 6px 12px);
+}
