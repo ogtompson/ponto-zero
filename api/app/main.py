@@ -25,7 +25,7 @@ async def ciclo_de_vida(app: FastAPI):
 app = FastAPI(
     title="PontoZero API",
     version=config.versao,
-    description="Mapa, indicadores, oferta comercial, comparação e análise de demanda x oferta dos bairros do Recife.",
+    description="Mapa, indicadores, oferta comercial e comparação com a referência municipal dos bairros do Recife.",
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
     redoc_url=None,

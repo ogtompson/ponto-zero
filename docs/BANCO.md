@@ -122,7 +122,7 @@ erDiagram
 | `vw_catalogo_indicador` | Rótulo, unidade e ordem de cada tipo de indicador |
 | `vw_indicador_atual` | Valor mais recente de cada indicador por região (`DISTINCT ON`) |
 | `vw_indicador_completo` | Indicadores guardados + densidade calculada (população ÷ área), sem armazenar dado derivado |
-| `vw_oferta_regiao` | Estabelecimentos por região e segmento, inclusive os zeros (`CROSS JOIN` + `LEFT JOIN`) |
+| `vw_oferta_regiao` | Registros observados por região e segmento; zero técnico não comprova ausência de estabelecimentos |
 | `vw_referencia_categoria` | Média do Recife: estabelecimentos por 10 mil habitantes em cada segmento |
 | `vw_resumo_analise` | Análises com quantidade de regiões e de relatórios |
 
@@ -131,12 +131,13 @@ erDiagram
 `fn_analise_demanda_oferta(id_categoria, regioes[], min_esperado = 2, cobertura_max = 0.5)`
 
 ```
-referência = estabelecimentos do segmento por 10 mil habitantes no Recife
-esperado   = referência × população da região ÷ 10 mil
-cobertura  = encontrados ÷ esperado
-possível lacuna (hipótese) quando esperado ≥ 2 e cobertura ≤ 50%
+referência proporcional = registros do segmento por 10 mil habitantes no Recife × população da região ÷ 10 mil
+relação                 = registros observados ÷ referência proporcional
+oferta observada baixa quando a referência proporcional ≥ 2 e a relação ≤ 50%
 não classificada quando falta população ou o segmento não tem base
 ```
+
+A função compara a base observada com a referência municipal. Ela não mede demanda e um resultado zero não comprova ausência de estabelecimentos, pois a cobertura do OpenStreetMap é parcial.
 
 ```sql
 SELECT regiao, populacao, encontrados, esperado, classificacao, motivo

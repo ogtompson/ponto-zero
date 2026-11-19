@@ -51,7 +51,7 @@ export function PainelResultados() {
             <Columns3 /> Comparar
           </TabsTrigger>
           <TabsTrigger value="analise">
-            <Telescope /> Demanda x oferta
+            <Telescope /> Oferta x referência
           </TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">

@@ -112,7 +112,7 @@ def gerar_pdf(comparacao: dict, analise: dict, usuario: dict | None) -> bytes:
     nomes = [r["nome"] for r in comparacao["regioes"]]
     historia.append(Paragraph(f"{segmento} em {', '.join(nomes[:-1])} e {nomes[-1]}", est["titulo"]))
     historia.append(Spacer(1, 2 * mm))
-    historia.append(Paragraph("Comparação de regiões e análise inicial da relação entre demanda e oferta. Recife, PE.", est["suave"]))
+    historia.append(Paragraph("Comparação de regiões e da oferta observada com a referência municipal. Recife, PE.", est["suave"]))
     historia.append(Spacer(1, 5 * mm))
 
     aviso = Table([[Paragraph(AVISO_NAO_RECOMENDACAO, est["aviso"])]], colWidths=[None])
@@ -130,13 +130,13 @@ def gerar_pdf(comparacao: dict, analise: dict, usuario: dict | None) -> bytes:
     historia.append(aviso)
 
     # ---------------------------------------------------------------- análise
-    historia.append(Paragraph("Demanda e oferta", est["h2"]))
+    historia.append(Paragraph("Oferta observada e referência", est["h2"]))
     linhas = [[Paragraph("Região", est["celula_b"]), Paragraph("Resultado", est["celula_b"]),
-               Paragraph("Encontrados", est["celula_b"]), Paragraph("Esperado", est["celula_b"]),
+               Paragraph("Observados", est["celula_b"]), Paragraph("Referência", est["celula_b"]),
                Paragraph("Motivo", est["celula_b"])]]
     for r in analise["resultados"]:
         rotulo = r["rotulo"]
-        if r["classificacao"] == "possivel_lacuna":
+        if r["classificacao"] == "oferta_observada_baixa":
             rotulo = f"<font color='#8A6A0B'><b>{rotulo}</b></font>"
         linhas.append(
             [
@@ -166,11 +166,11 @@ def gerar_pdf(comparacao: dict, analise: dict, usuario: dict | None) -> bytes:
         o = comparacao["oferta"]
         corpo.append(
             [Paragraph(f"Estabelecimentos ({o['segmento']})", est["celula"])]
-            + [Paragraph(br(v["quantidade"]), est["celula"]) for v in o["valores"]]
+            + [Paragraph("Sem registro" if v["status_dado"] == "sem_registro_observado" else br(v["quantidade"]), est["celula"]) for v in o["valores"]]
         )
         corpo.append(
             [Paragraph("Por 10 mil habitantes", est["celula"])]
-            + [Paragraph(br(v["por_10k_hab"], 2), est["celula"]) for v in o["valores"]]
+            + [Paragraph("—" if v["status_dado"] == "sem_registro_observado" else br(v["por_10k_hab"], 2), est["celula"]) for v in o["valores"]]
         )
     largura = (A4[0] - 36 * mm - 40 * mm) / len(nomes)
     tc = Table(corpo, colWidths=[40 * mm] + [largura] * len(nomes), repeatRows=1)
@@ -227,8 +227,8 @@ def gerar_csv(comparacao: dict, analise: dict) -> bytes:
     w.writerow(["Segmento", analise["segmento"]["nome"]])
     w.writerow(["Regiões", ", ".join(nomes)])
     w.writerow([])
-    w.writerow(["Demanda e oferta"])
-    w.writerow(["Região", "Resultado", "Encontrados", "Esperado", "Cobertura", "Motivo"])
+    w.writerow(["Oferta observada e referência"])
+    w.writerow(["Região", "Resultado", "Observados", "Referência proporcional", "Relação observado/referência", "Motivo"])
     for r in analise["resultados"]:
         w.writerow([r["nome"], r["rotulo"], r["encontrados"], br(r["esperado"], 1), br(r["cobertura"], 2), r["motivo"]])
     w.writerow([])
@@ -242,8 +242,8 @@ def gerar_csv(comparacao: dict, analise: dict) -> bytes:
         w.writerow([linha["rotulo"], linha["unidade"]] + [br(v["valor"], 2) if v["valor"] is not None else "indisponível" for v in linha["valores"]])
     if comparacao.get("oferta"):
         o = comparacao["oferta"]
-        w.writerow([f"Estabelecimentos ({o['segmento']})", "estabelecimentos"] + [v["quantidade"] for v in o["valores"]])
-        w.writerow(["Por 10 mil habitantes", "estabelecimentos"] + [br(v["por_10k_hab"], 2) for v in o["valores"]])
+        w.writerow([f"Estabelecimentos ({o['segmento']})", "estabelecimentos"] + [("sem registro" if v["status_dado"] == "sem_registro_observado" else v["quantidade"]) for v in o["valores"]])
+        w.writerow(["Por 10 mil habitantes", "estabelecimentos"] + [("indisponível" if v["status_dado"] == "sem_registro_observado" else br(v["por_10k_hab"], 2)) for v in o["valores"]])
     w.writerow([])
     w.writerow(["Fonte", "Data de referência", "Usada em"])
     vistas = set()

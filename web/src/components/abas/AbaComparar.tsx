@@ -69,7 +69,7 @@ export function AbaComparar() {
                   </th>
                   {d.oferta.valores.map((v) => (
                     <td key={v.id_regiao} className="px-3 py-2 font-semibold numeros">
-                      {num(v.quantidade)}
+                      {v.status_dado === "sem_registro_observado" ? <span className="font-normal italic text-tinta-fraca">Sem registro</span> : num(v.quantidade)}
                     </td>
                   ))}
                 </tr>
@@ -79,7 +79,7 @@ export function AbaComparar() {
                   </th>
                   {d.oferta.valores.map((v) => (
                     <td key={v.id_regiao} className="px-3 py-2 font-semibold numeros">
-                      {num(v.por_10k_hab, 2)}
+                      {v.status_dado === "sem_registro_observado" ? <span aria-label="Não calculado">—</span> : num(v.por_10k_hab, 2)}
                     </td>
                   ))}
                 </tr>

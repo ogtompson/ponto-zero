@@ -47,27 +47,27 @@ Extras que a disciplina cobre: build em duas etapas (api e web), usuário sem ro
 | 004 Filtros | só segmentos com dados | `GET /api/segmentos` | `test_segmentos_so_com_dados` |
 | 004 | trocar o segmento atualiza oferta e análise sem recarregar | estado na URL + React Query | manual |
 | 004 | regiões escolhidas no filtro aparecem destacadas no mapa (e vice-versa) | mesma seleção em `selecao.tsx` | manual |
-| 004 | sem segmento: oferta e análise pedem para escolher um | abas Oferta e Demanda x oferta | `test_oferta_exige_segmento` |
+| 004 | sem segmento: oferta e análise pedem para escolher um | abas Oferta e Oferta x referência | `test_oferta_exige_segmento` |
 | 005 Indicadores | nome, valor e unidade | `vw_indicador_completo`, aba Indicadores | `test_indicadores_tem_valor_unidade_fonte_e_data` |
 | 005 | sem dado aparece "indisponível", nunca zero | API devolve `null` + texto na tela | `test_indicador_sem_dado_aparece_indisponivel` |
 | 005 | aviso de aproximação visível | topo da aba Indicadores e na Comparação | `test_indicadores_tem_valor_unidade_fonte_e_data` |
 | 006 Oferta | estabelecimentos do segmento no mapa | camada dourada no mapa, `GET /api/oferta` | `test_oferta_mesma_metrica_e_mensagem_sem_estabelecimento` |
 | 006 | concentração com a mesma métrica para todas as regiões | "por 10 mil habitantes" | mesmo teste |
-| 006 | sem estabelecimento: "nenhum estabelecimento encontrado nos dados disponíveis" | aba Oferta | mesmo teste |
+| 006 | sem registro observado: informa cobertura parcial e não apresenta zero como ausência confirmada | aba Oferta | mesmo teste |
 | 006 | fonte, data e aviso de cobertura | lateral da aba Oferta | mesmo teste |
 | 007 Fontes | cada indicador mostra fonte e data, ou "data de referência não informada" | botão (i) ao lado de cada valor | `test_indicadores_tem_valor_unidade_fonte_e_data` |
-| 007 | a análise lista as fontes usadas no cálculo | aba Demanda x oferta | `test_analise_rotula_hipotese_e_mostra_fontes` |
+| 007 | a análise lista as fontes e a qualidade da cobertura usadas no cálculo | aba Oferta x referência | `test_analise_qualifica_oferta_observada_e_mostra_fontes` |
 | 007 | sem fonte o indicador não aparece | `fonte NOT NULL` no banco | restrição do banco |
 | 008 Comparação | duas ou mais regiões lado a lado | aba Comparar | `test_comparacao_mantem_ordem_sem_ranking` |
 | 008 | uma região só: "Selecione ao menos duas regiões para comparar" | aba e API | `test_comparacao_bloqueia_uma_regiao` |
 | 008 | sem ranking nem pontuação | colunas na ordem em que o usuário escolheu | `test_comparacao_mantem_ordem_sem_ranking` |
 | 008 | limite de regiões (era pendente) | definido em 8 | `MAX_REGIOES` na API e no front |
 | 009 Análise | exige segmento e duas regiões | aba e API | `test_analise_exige_segmento_e_duas_regioes` |
-| 009 | regras e critérios visíveis | painel "Como a análise é feita" | `test_analise_rotula_hipotese_e_mostra_fontes` |
-| 009 | resultado rotulado "Possível lacuna (hipótese)" | `fn_analise_demanda_oferta` | mesmo teste |
+| 009 | regras e critérios visíveis | painel "Como a análise é feita" | `test_analise_qualifica_oferta_observada_e_mostra_fontes` |
+| 009 | resultado descreve somente a oferta observada em relação à referência municipal | `fn_analise_demanda_oferta` + API | mesmo teste |
 | 009 | aviso de que não é recomendação de investimento | destaque no topo da aba, no PDF e no CSV | mesmo teste |
 | 009 | região com dado faltando: "não classificada" com o motivo | função SQL | regra na função |
-| 009 | sem ranking, recomendação nem previsão | nenhuma ordenação ou nota | revisão |
+| 009 | sem ranking, recomendação, previsão ou alegação de demanda | nenhuma ordenação ou nota | revisão |
 | 009 | limiares (eram pendentes) | esperado ≥ 2 e cobertura ≤ 50%, configuráveis por variável de ambiente | `config.py` |
 | 010 Exportar | gera arquivo com a tela, fontes e avisos | botão Exportar: PDF ou CSV | `test_exportacao_csv_tem_fontes_e_avisos` |
 | 010 | sem análise na tela, a ação fica indisponível | botão desabilitado + API recusa | `test_exportacao_sem_analise_fica_indisponivel` |

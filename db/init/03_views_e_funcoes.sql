@@ -106,14 +106,14 @@ FROM analise a
 JOIN empresa e ON e.id_empresa = a.id_empresa;
 
 -- ---------------------------------------------------------------------
--- HU-009: análise inicial da relação entre demanda e oferta
+-- HU-009: comparação da oferta observada com a referência municipal
 --
 -- Regra (simples e transparente, exibida na tela):
 --   referência  = estabelecimentos do segmento por 10 mil hab. no Recife
 --   esperado    = referência × população da região ÷ 10 mil
 --   cobertura   = encontrados ÷ esperado
---   "possível lacuna (hipótese)" quando esperado ≥ p_min_esperado
---                                 e cobertura ≤ p_cobertura_max
+--   "oferta observada baixa" quando esperado ≥ p_min_esperado
+--                              e cobertura ≤ p_cobertura_max
 --   "não classificada" quando falta dado necessário (motivo informado)
 -- Nada aqui é ranking nem recomendação de investimento (RN07).
 -- ---------------------------------------------------------------------
@@ -163,9 +163,9 @@ LANGUAGE sql STABLE AS $$
                WHEN b.populacao IS NULL                     THEN 'nao_classificada'
                WHEN b.referencia_10k IS NULL
                  OR b.referencia_10k = 0                    THEN 'nao_classificada'
-               WHEN b.esperado < p_min_esperado              THEN 'sem_indicio'
-               WHEN b.encontrados <= p_cobertura_max * b.esperado THEN 'possivel_lacuna'
-               ELSE 'sem_indicio'
+               WHEN b.esperado < p_min_esperado              THEN 'oferta_observada_compativel'
+               WHEN b.encontrados <= p_cobertura_max * b.esperado THEN 'oferta_observada_baixa'
+               ELSE 'oferta_observada_compativel'
            END,
            CASE
                WHEN b.populacao IS NULL
@@ -185,4 +185,4 @@ LANGUAGE sql STABLE AS $$
 $$;
 
 COMMENT ON FUNCTION fn_analise_demanda_oferta(INT, INT[], NUMERIC, NUMERIC)
-    IS 'HU-009: classifica regiões em possível lacuna (hipótese), sem indício ou não classificada';
+    IS 'HU-009: compara oferta observada e referência municipal; não mede demanda nem confirma ausência de oferta';
