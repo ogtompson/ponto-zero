@@ -2,7 +2,7 @@
 import { BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useComparacao } from "@/hooks/dados";
+import { useComparacao, useSnapshotDaSelecao } from "@/hooks/dados";
 import { num, valorIndicador } from "@/lib/formato";
 import { useSelecao } from "@/lib/selecao";
 import { Aviso } from "../Aviso";
@@ -20,11 +20,13 @@ function FonteDaLinha({ valores, rotulo }: { valores: { fonte: string | null; da
 export function AbaComparar() {
   const { segmento, regioes } = useSelecao();
   const q = useComparacao(segmento, regioes);
+  const salva = useSnapshotDaSelecao(segmento, regioes);
 
   if (regioes.length < 2) return <Vazio titulo="Selecione ao menos duas regiões para comparar">Marque mais um bairro no mapa.</Vazio>;
-  if (q.isLoading) return <Carregando />;
-  if (q.isError) return <Vazio titulo="Não deu para montar a comparação">{(q.error as Error).message}</Vazio>;
-  const d = q.data!;
+  if (salva.id && salva.isLoading) return <Carregando />;
+  if (q.isLoading && !salva.snapshot) return <Carregando />;
+  if (q.isError && !salva.snapshot) return <Vazio titulo="Não deu para montar a comparação">{(q.error as Error).message}</Vazio>;
+  const d = salva.snapshot?.comparacao ?? q.data!;
 
   return (
     <div className="flex flex-col gap-3 p-4">

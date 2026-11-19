@@ -1,7 +1,7 @@
 // HU-005: indicadores territoriais. HU-007: fonte e data em cada valor.
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIndicadores } from "@/hooks/dados";
+import { useIndicadores, useSnapshotDaSelecao } from "@/hooks/dados";
 import { valorIndicador } from "@/lib/formato";
 import { useSelecao } from "@/lib/selecao";
 import { Aviso } from "../Aviso";
@@ -10,13 +10,15 @@ import { Pino } from "../Marca";
 import { Vazio } from "../Vazio";
 
 export function AbaIndicadores() {
-  const { regioes } = useSelecao();
+  const { segmento, regioes } = useSelecao();
   const q = useIndicadores(regioes);
+  const salva = useSnapshotDaSelecao(segmento, regioes);
 
   if (!regioes.length) return <Vazio titulo="Escolha um bairro para ver os indicadores">Clique no mapa ou use a busca ao lado.</Vazio>;
-  if (q.isLoading) return <Carregando />;
-  if (q.isError) return <Vazio titulo="Não deu para carregar os indicadores">{(q.error as Error).message}</Vazio>;
-  const d = q.data!;
+  if (salva.id && salva.isLoading) return <Carregando />;
+  if (q.isLoading && !salva.snapshot) return <Carregando />;
+  if (q.isError && !salva.snapshot) return <Vazio titulo="Não deu para carregar os indicadores">{(q.error as Error).message}</Vazio>;
+  const d = salva.snapshot?.indicadores ?? q.data!;
 
   return (
     <div className="flex flex-col gap-3 p-4">

@@ -1,19 +1,24 @@
-"""Análises salvas da empresa (ANALISE + REGIAO_ANALISE + RELATORIO).
-
-No modelo da equipe, a análise pertence à EMPRESA e o segmento analisado é o
-segmento da própria empresa (empresa.segmento). Por isso a análise é salva
-para o segmento da empresa do usuário.
-"""
+"""Análises salvas com o estado territorial congelado no momento da criação."""
 
 from datetime import datetime
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from psycopg.types.json import Jsonb
 
-from ..config import config
+from ..config import METODOLOGIA_VERSAO, config
 from ..db import conexao, consulta
 from ..seguranca import usuario_obrigatorio
-from ..servicos.territorio import chave_ordem, erro, regioes_validas
+from ..servicos.territorio import (
+    analise as calcular_analise,
+    chave_ordem,
+    comparacao,
+    erro,
+    indicadores,
+    oferta,
+    regioes_validas,
+    segmento_valido,
+)
 
 router = APIRouter(prefix="/analises", tags=["análises salvas"])
 
@@ -21,7 +26,7 @@ router = APIRouter(prefix="/analises", tags=["análises salvas"])
 class NovaAnalise(BaseModel):
     nome: str = ""
     objetivo: str | None = None
-    segmento: str | None = None
+    segmento: int | None = None
     regioes: list[int] = []
 
 
@@ -60,6 +65,8 @@ def _detalhar(linhas: list[dict]) -> list[dict]:
             if r["id_analise"] == l["id_analise"]
         ]
         l["data_criacao"] = l["data_criacao"].isoformat()
+        if l.get("capturado_em"):
+            l["capturado_em"] = l["capturado_em"].isoformat()
         if l.get("ultimo_relatorio"):
             l["ultimo_relatorio"] = l["ultimo_relatorio"].isoformat()
     return linhas
@@ -79,37 +86,43 @@ def criar(dados: NovaAnalise, usuario: dict = Depends(usuario_obrigatorio)):
     nome = dados.nome.strip()
     if not nome:
         raise erro(422, "Dê um nome para a análise.", "nome")
-    regioes_validas(dados.regioes, 1, "Selecione ao menos uma região para salvar a análise.")
-
-    segmento_empresa = usuario["segmento"]
-    segmento_pedido = (dados.segmento or "").strip() or None
-    if segmento_pedido and not consulta("SELECT 1 FROM categoria WHERE nome = %s", (segmento_pedido,)):
-        raise erro(422, "Segmento desconhecido.", "segmento")
-    if segmento_empresa and segmento_pedido and segmento_pedido != segmento_empresa:
-        raise erro(
-            409,
-            f"Sua empresa está cadastrada no segmento {segmento_empresa}. "
-            f"Troque o segmento para {segmento_empresa} para salvar esta análise.",
-            "segmento",
-        )
+    ids = list(dict.fromkeys(dados.regioes))
+    regioes_validas(ids, 2, "Selecione ao menos duas regiões para salvar a análise.")
+    segmento = segmento_valido(dados.segmento)
+    capturado_em = datetime.now(config.fuso)
+    snapshot = {
+        "schema_version": 1,
+        "methodology_version": METODOLOGIA_VERSAO,
+        "captured_at": capturado_em.isoformat(),
+        "selection": {"segmento": segmento, "regioes": ids},
+        "indicadores": indicadores(ids),
+        "oferta": oferta(segmento["id_categoria"], ids),
+        "comparacao": comparacao(segmento["id_categoria"], ids),
+        "analise": calcular_analise(segmento["id_categoria"], ids),
+    }
 
     with conexao() as conn:
-        if not segmento_empresa and segmento_pedido:
-            conn.execute(
-                "UPDATE empresa SET segmento = %s WHERE id_empresa = %s",
-                (segmento_pedido, usuario["id_empresa"]),
-            )
         id_analise = conn.execute(
             """
-            INSERT INTO analise (nome, data_criacao, objetivo, id_empresa)
-            VALUES (%s, %s, %s, %s) RETURNING id_analise
+            INSERT INTO analise
+                (nome, data_criacao, objetivo, id_categoria, versao_metodologia, capturado_em, snapshot, id_empresa)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id_analise
             """,
-            (nome[:100], _hoje(), (dados.objetivo or "").strip() or None, usuario["id_empresa"]),
+            (
+                nome[:100],
+                _hoje(),
+                (dados.objetivo or "").strip() or None,
+                segmento["id_categoria"],
+                METODOLOGIA_VERSAO,
+                capturado_em,
+                Jsonb(snapshot),
+                usuario["id_empresa"],
+            ),
         ).fetchone()["id_analise"]
         with conn.cursor() as cur:
             cur.executemany(
                 "INSERT INTO regiao_analise (id_analise, id_regiao) VALUES (%s, %s)",
-                [(id_analise, r) for r in dict.fromkeys(dados.regioes)],
+                [(id_analise, r) for r in ids],
             )
     return obter(id_analise, usuario)
 
@@ -117,7 +130,11 @@ def criar(dados: NovaAnalise, usuario: dict = Depends(usuario_obrigatorio)):
 @router.get("/{id_analise}", summary="Detalhe de uma análise")
 def obter(id_analise: int, usuario: dict = Depends(usuario_obrigatorio)):
     linhas = consulta(
-        "SELECT * FROM vw_resumo_analise WHERE id_analise = %s AND id_empresa = %s",
+        """
+        SELECT v.*, a.snapshot
+        FROM vw_resumo_analise v JOIN analise a USING (id_analise)
+        WHERE v.id_analise = %s AND v.id_empresa = %s
+        """,
         (id_analise, usuario["id_empresa"]),
     )
     if not linhas:

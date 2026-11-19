@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { MapPinned, Trash2 } from "lucide-react";
+import { Archive, History, MapPinned, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,9 +35,7 @@ export function MinhasAnalises() {
     <Pagina>
       <header className="mb-6">
         <h1 className="larga text-[28px] font-extrabold leading-tight text-marinho">Análises de {u.empresa}</h1>
-        <p className="mt-1 text-tinta-suave">
-          {u.segmento ? <>Segmento da empresa: {u.segmento}.</> : "Sua empresa ainda não tem segmento: ele é definido na primeira análise salva."}
-        </p>
+        <p className="mt-1 text-tinta-suave">Cada análise preserva o segmento, os dados, as fontes e as regras usados quando ela foi salva.</p>
       </header>
       {lista.isLoading ? (
         <div className="flex flex-col gap-3">
@@ -92,6 +90,12 @@ function ItemAnalise({ a }: { a: AnaliseSalva }) {
           <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-tinta-suave">
             {a.segmento && <IconeSegmento nome={a.segmento} className="size-3.5" />}
             {a.segmento ?? "Sem segmento"}, criada em {dataBr(a.data_criacao)}
+          </p>
+          <p className="mt-1.5 flex items-center gap-1.5 text-[12.5px] text-tinta-suave">
+            {a.snapshot_disponivel ? <Archive className="size-3.5" aria-hidden /> : <History className="size-3.5" aria-hidden />}
+            {a.snapshot_disponivel
+              ? `Snapshot preservado · metodologia ${a.versao_metodologia}`
+              : "Análise legada · resultados serão recalculados ao abrir"}
           </p>
           {a.objetivo && <p className="mt-2 max-w-prose text-[14.5px]">{a.objetivo}</p>}
         </div>
