@@ -98,12 +98,17 @@ SELECT a.id_analise,
        a.objetivo,
        a.id_empresa,
        e.nome     AS empresa,
-       e.segmento AS segmento,
+       COALESCE(c.nome, e.segmento) AS segmento,
        (SELECT count(*) FROM regiao_analise ra WHERE ra.id_analise = a.id_analise)::int AS qtd_regioes,
        (SELECT count(*) FROM relatorio rl WHERE rl.id_analise = a.id_analise)::int     AS qtd_relatorios,
-       (SELECT max(rl.data_geracao) FROM relatorio rl WHERE rl.id_analise = a.id_analise) AS ultimo_relatorio
+       (SELECT max(rl.data_geracao) FROM relatorio rl WHERE rl.id_analise = a.id_analise) AS ultimo_relatorio,
+       a.id_categoria,
+       a.versao_metodologia,
+       a.capturado_em,
+       (a.snapshot IS NOT NULL) AS snapshot_disponivel
 FROM analise a
-JOIN empresa e ON e.id_empresa = a.id_empresa;
+JOIN empresa e ON e.id_empresa = a.id_empresa
+LEFT JOIN categoria c ON c.id_categoria = a.id_categoria;
 
 -- ---------------------------------------------------------------------
 -- HU-009: comparação da oferta observada com a referência municipal

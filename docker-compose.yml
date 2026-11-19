@@ -55,6 +55,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - rede-dados
       - rede-app
@@ -64,6 +66,21 @@ services:
       timeout: 4s
       retries: 10
       start_period: 15s
+
+  migrate:
+    image: ${DOCKERHUB_USER:-ogabrieltenorio}/pontozero-db:${TAG:-1.0}
+    restart: "no"
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:-pontozero_admin}
+    command:
+      - sh
+      - -c
+      - psql -v ON_ERROR_STOP=1 -h db -U ${POSTGRES_USER:-pontozero} -d ${POSTGRES_DB:-pontozero} -f /opt/pontozero/migrations/001_snapshot_analises.sql
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - rede-dados
 
   web:
     image: ${DOCKERHUB_USER:-ogabrieltenorio}/pontozero-web:${TAG:-1.0}

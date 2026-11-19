@@ -94,6 +94,10 @@ CREATE TABLE analise (
     nome         VARCHAR(100) NOT NULL CHECK (length(trim(nome)) > 0),
     data_criacao DATE NOT NULL DEFAULT CURRENT_DATE,
     objetivo     TEXT,
+    id_categoria INT REFERENCES categoria (id_categoria) ON DELETE RESTRICT,
+    versao_metodologia VARCHAR(30) NOT NULL DEFAULT 'legado',
+    capturado_em TIMESTAMPTZ,
+    snapshot     JSONB CONSTRAINT analise_snapshot_objeto CHECK (snapshot IS NULL OR jsonb_typeof(snapshot) = 'object'),
     id_empresa   INT NOT NULL REFERENCES empresa (id_empresa) ON DELETE RESTRICT
 );
 
