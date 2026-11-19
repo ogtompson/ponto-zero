@@ -41,7 +41,7 @@ O banco também fica acessível no pgAdmin/DBeaver em `localhost:55432` (banco `
 | No mínimo 2 imagens: banco e aplicação | 3 imagens: [`db`](db/Dockerfile), [`api`](api/Dockerfile) e [`web`](web/Dockerfile) |
 | Imagens no Docker Hub | `ogabrieltenorio/pontozero-db`, `-api` e `-web`, publicadas por [`scripts/publicar.ps1`](scripts/publicar.ps1) |
 | Compose que sobe aplicação + banco | [`docker-compose.yml`](docker-compose.yml): sobe só com as imagens, sem precisar do código |
-| Subir sem problemas e rodar | `healthcheck` nos 3 serviços e `depends_on: service_healthy`: a API espera o banco, o site espera a API |
+| Subir sem problemas e rodar | `healthcheck` nos serviços persistentes e migração idempotente: a API espera banco e schema, o site espera a API |
 | Desligar e religar mantendo os dados | volume nomeado `pgdata`; testado por [`scripts/testar-persistencia.ps1`](scripts/testar-persistencia.ps1) |
 | Funcionalidades de Banco de Dados | modelo da equipe com as 9 tabelas, restrições, índices, triggers, views e função de análise: veja [docs/BANCO.md](docs/BANCO.md) |
 
@@ -80,6 +80,7 @@ As 9 tabelas seguem o DER da equipe sem mudança de nomes. Detalhes, dicionário
 erDiagram
     EMPRESA ||--o{ USUARIO : possui
     EMPRESA ||--o{ ANALISE : realiza
+    CATEGORIA ||--o{ ANALISE : contextualiza
     ANALISE ||--|{ REGIAO_ANALISE : inclui
     REGIAO ||--o{ REGIAO_ANALISE : "aparece em"
     ANALISE ||--o{ RELATORIO : gera

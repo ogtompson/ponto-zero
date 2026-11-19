@@ -65,10 +65,11 @@ docker compose exec api python -c "import socket; print(socket.gethostbyname('db
 
 ## 5. Docker Compose (aula "Docker Compose")
 
-O [`docker-compose.yml`](../docker-compose.yml) descreve os três serviços. Pontos que garantem que sobe sem erro:
+O [`docker-compose.yml`](../docker-compose.yml) descreve os três serviços persistentes e o job efêmero `migrate`. Pontos que garantem que sobe sem erro:
 
 - `healthcheck` em cada serviço: o Docker pergunta de tempos em tempos se ele está bem.
-- `depends_on` com `condition: service_healthy`: a API só liga quando o banco responde, e o site só liga quando a API responde.
+- `migrate` aplica alterações idempotentes também em volumes existentes e termina antes de a API iniciar.
+- `depends_on` com `condition: service_healthy` e `service_completed_successfully`: a API só liga quando banco e schema estão prontos, e o site só liga quando a API responde.
 - `restart: unless-stopped`: se um processo cair, o Docker religa.
 - Todos os valores têm padrão (`${VAR:-padrão}`), então não precisa de `.env`.
 
