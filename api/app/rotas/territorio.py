@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi import APIRouter, Query, Response
 
 from ..servicos import territorio as t
+from ..servicos.perfis_segmento import listar_perfis
 
 router = APIRouter(tags=["território"])
 
@@ -16,6 +17,11 @@ GEOJSON = Path(__file__).resolve().parents[1] / "data" / "bairros-recife.geojson
 @router.get("/segmentos", summary="Segmentos com dados no piloto (HU-004)")
 def segmentos():
     return t.listar_segmentos()
+
+
+@router.get("/segmentos/catalogo", summary="Catálogo e maturidade analítica dos segmentos")
+def catalogo_segmentos():
+    return listar_perfis()
 
 
 @router.get("/regioes", summary="Regiões disponíveis, com população e renda")
@@ -65,3 +71,8 @@ def comparacao(regioes: str, segmento: int | None = None):
 @router.get("/analise", summary="Oferta observada e referência municipal (HU-009)")
 def analise(segmento: int | None = None, regioes: str | None = None):
     return t.analise(segmento, t.ids_da_query(regioes))
+
+
+@router.get("/diagnostico", summary="Diagnóstico territorial por dimensões")
+def diagnostico(segmento: int | None = None, regioes: str | None = None):
+    return t.diagnostico(segmento, t.ids_da_query(regioes))

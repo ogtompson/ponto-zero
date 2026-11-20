@@ -3,13 +3,11 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useSegmentos } from "@/hooks/dados";
 import { api, ErroApi, type Usuario } from "@/lib/api";
-import { cn } from "@/lib/utils";
 
 type Erros = Record<string, string>;
 
@@ -38,8 +36,25 @@ function Campo({
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export function DialogoConta({ aberto, aoMudar, abaInicial = "entrar" }: { aberto: boolean; aoMudar: (v: boolean) => void; abaInicial?: "entrar" | "criar" }) {
+  return (
+    <Dialog open={aberto} onOpenChange={aoMudar}>
+      <DialogContent>
+        <FormularioConta abaInicial={abaInicial} aoConcluir={() => aoMudar(false)} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function FormularioConta({
+  abaInicial = "entrar",
+  aoConcluir,
+  mostrarCabecalho = true,
+}: {
+  abaInicial?: "entrar" | "criar";
+  aoConcluir?: (usuario: Usuario) => void;
+  mostrarCabecalho?: boolean;
+}) {
   const qc = useQueryClient();
-  const segmentos = useSegmentos();
   const [aba, setAba] = useState(abaInicial);
   const [erros, setErros] = useState<Erros>({});
   const [erroGeral, setErroGeral] = useState<string | null>(null);
@@ -50,7 +65,7 @@ export function DialogoConta({ aberto, aoMudar, abaInicial = "entrar" }: { abert
     toast(texto, { description: u.empresa });
     setErros({});
     setErroGeral(null);
-    aoMudar(false);
+    aoConcluir?.(u);
   };
 
   const falha = (e: unknown) => {
@@ -88,12 +103,13 @@ export function DialogoConta({ aberto, aoMudar, abaInicial = "entrar" }: { abert
   }
 
   return (
-    <Dialog open={aberto} onOpenChange={aoMudar}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{aba === "entrar" ? "Entrar" : "Criar conta"}</DialogTitle>
-          <DialogDescription>Com uma conta, sua empresa salva análises e guarda o histórico de relatórios. Explorar o mapa não exige conta.</DialogDescription>
-        </DialogHeader>
+    <div>
+        {mostrarCabecalho && (
+          <div className="mb-4">
+            <h2 className="semi-larga text-xl font-bold text-marinho">{aba === "entrar" ? "Entrar" : "Criar conta"}</h2>
+            <p className="mt-1.5 text-sm text-tinta-suave">Com uma conta, você salva análises e guarda o histórico de relatórios. Explorar o mapa não exige conta.</p>
+          </div>
+        )}
         <Tabs
           value={aba}
           onValueChange={(v) => {
@@ -122,23 +138,6 @@ export function DialogoConta({ aberto, aoMudar, abaInicial = "entrar" }: { abert
               <Campo id="nome" rotulo="Seu nome" autoComplete="name" erro={erros.nome} />
               <Campo id="email" rotulo="E-mail" type="email" autoComplete="email" erro={erros.email} />
               <Campo id="senha" rotulo="Senha" type="password" autoComplete="new-password" erro={erros.senha} dica="Pelo menos 8 caracteres." />
-              <Campo id="empresa" rotulo="Empresa" autoComplete="organization" placeholder="Opcional" erro={erros.empresa} />
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="segmento">Segmento da empresa</Label>
-                <select
-                  id="segmento"
-                  name="segmento"
-                  defaultValue=""
-                  className={cn("h-10 rounded-md border border-input bg-white px-3 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring")}
-                >
-                  <option value="">Decidir depois</option>
-                  {segmentos.data?.map((s) => (
-                    <option key={s.id_categoria} value={s.nome}>
-                      {s.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
               {erroGeral && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">{erroGeral}</p>}
               <Button type="submit" size="lg" disabled={criar.isPending}>
                 {criar.isPending ? "Criando..." : "Criar conta"}
@@ -146,7 +145,6 @@ export function DialogoConta({ aberto, aoMudar, abaInicial = "entrar" }: { abert
             </form>
           </TabsContent>
         </Tabs>
-      </DialogContent>
-    </Dialog>
+    </div>
   );
 }

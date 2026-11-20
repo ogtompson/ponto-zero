@@ -75,6 +75,11 @@ export type Segmento = {
   descricao: string | null;
   total_estabelecimentos: number;
   por_10k_hab: number;
+  slug: string;
+  maturidade: "especializado" | "configurado" | "geral";
+  disponibilidade: "piloto" | "preparacao" | "personalizado";
+  direcionadores: string[];
+  area_influencia: null | { modo: "caminhada" | "deslocamento"; minutos: number };
 };
 
 export type Regiao = {
@@ -188,6 +193,48 @@ export type RespostaAnalise = {
   avisos: string[];
 };
 
+export type EvidenciaDiagnostico = {
+  indicador: string;
+  rotulo: string;
+  valor: number | null;
+  unidade: string;
+  percentil: number | null;
+  faixa: "alta" | "intermediaria" | "baixa" | "indisponivel";
+  disponivel: boolean;
+  qualidade: "adequada" | "aproximada" | "insuficiente";
+  interpretacao: string;
+  fonte: string | null;
+  data_texto: string | null;
+};
+
+export type DimensaoDiagnostico = {
+  id: "demanda_residente" | "perfil_publico" | "oferta_local" | "acesso_centralidade" | "confianca_dados";
+  titulo: string;
+  status: "disponivel" | "parcial" | "insuficiente";
+  confianca: "adequada" | "aproximada" | "insuficiente";
+  resumo: string;
+  evidencias: EvidenciaDiagnostico[];
+  limitacoes: string[];
+};
+
+export type RespostaDiagnostico = {
+  versao_metodologia: string;
+  segmento: Segmento;
+  sem_score: true;
+  regioes: {
+    id_regiao: number;
+    nome: string;
+    dimensoes: DimensaoDiagnostico[];
+    sintese: {
+      dimensoes_disponiveis: number;
+      dimensoes_parciais: number;
+      dimensoes_insuficientes: number;
+      proximo_passo: string;
+    };
+  }[];
+  avisos: string[];
+};
+
 export type Usuario = {
   id_usuario: number;
   nome: string;
@@ -226,6 +273,7 @@ export type SnapshotAnalise = {
   oferta: RespostaOferta;
   comparacao: RespostaComparacao;
   analise: RespostaAnalise;
+  diagnostico?: RespostaDiagnostico;
 };
 
 export type Status = {

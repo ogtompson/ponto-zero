@@ -8,6 +8,7 @@ import {
   type Regiao,
   type RespostaAnalise,
   type RespostaComparacao,
+  type RespostaDiagnostico,
   type RespostaIndicadores,
   type RespostaOferta,
   type Segmento,
@@ -67,6 +68,14 @@ export const useAnalise = (segmento: number | null, ids: number[]) =>
     queryKey: ["analise", segmento, lista(ids)],
     queryFn: () => api.get<RespostaAnalise>(`/analise?segmento=${segmento}&regioes=${lista(ids)}`),
     enabled: segmento != null && ids.length >= 2,
+    placeholderData: keepPreviousData,
+  });
+
+export const useDiagnostico = (segmento: number | null, ids: number[]) =>
+  useQuery({
+    queryKey: ["diagnostico", segmento, lista(ids)],
+    queryFn: () => api.get<RespostaDiagnostico>(`/diagnostico?segmento=${segmento}&regioes=${lista(ids)}`),
+    enabled: segmento != null && ids.length > 0,
     placeholderData: keepPreviousData,
   });
 

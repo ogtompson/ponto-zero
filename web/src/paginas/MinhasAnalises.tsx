@@ -79,7 +79,7 @@ function ItemAnalise({ a }: { a: AnaliseSalva }) {
     if (idSeg) p.set("segmento", String(idSeg));
     p.set("bairros", a.regioes.map((r) => r.id_regiao).join(","));
     p.set("analise", String(a.id_analise));
-    navegar(`/?${p.toString()}`);
+    navegar(`/explorar?${p.toString()}`);
   }
 
   return (
