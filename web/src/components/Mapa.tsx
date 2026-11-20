@@ -215,6 +215,8 @@ export function Mapa() {
         <TileLayer
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxZoom={19}
+          opacity={0.55}
+          className="pz-base-cartografica"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Bairros: Prefeitura do Recife'
         />
         <Pane name="estabelecimentos" style={{ zIndex: 620 }} />
