@@ -20,8 +20,14 @@ export default function App() {
         <SelecaoProvider>
           <TooltipProvider delayDuration={200}>
             <div className="flex h-dvh flex-col">
+              <a
+                href="#conteudo-principal"
+                className="fixed left-3 top-3 z-[2000] -translate-y-24 rounded-md bg-marinho px-4 py-2 text-sm font-semibold text-white shadow-lg transition-transform focus:translate-y-0"
+              >
+                Pular para o conteúdo
+              </a>
               <Cabecalho />
-              <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden">
+              <main id="conteudo-principal" tabIndex={-1} className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden">
                 <Routes>
                   <Route path="/" element={<Explorar />} />
                   <Route path="/analises" element={<div className="flex-1 overflow-y-auto"><MinhasAnalises /></div>} />
@@ -35,7 +41,7 @@ export default function App() {
                     }
                   />
                 </Routes>
-              </div>
+              </main>
             </div>
             <Toaster />
           </TooltipProvider>

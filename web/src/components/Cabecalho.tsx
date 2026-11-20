@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { LogOut, UserRound } from "lucide-react";
+import { Check, LogOut, Menu, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSair, useSessao } from "@/hooks/dados";
@@ -21,11 +21,11 @@ export function Cabecalho() {
   const u = sessao.data;
 
   return (
-    <header className="z-[600] flex h-14 shrink-0 items-center gap-4 border-b border-nevoa bg-white px-4">
-      <Link to="/" aria-label="PontoZero, início" className="shrink-0">
+    <header className="z-[600] flex min-h-14 shrink-0 items-center gap-3 border-b border-nevoa bg-white px-3 sm:px-4">
+      <Link to="/" aria-label="PontoZero, início" className="shrink-0 rounded-sm">
         <LogoPontoZero className="h-[30px]" />
       </Link>
-      <nav className="flex min-w-0 items-center gap-0.5 overflow-x-auto" aria-label="Principal">
+      <nav className="hidden min-w-0 items-center gap-0.5 md:flex" aria-label="Principal">
         {LINKS.map((l) => (
           <NavLink
             key={l.para}
@@ -76,6 +76,29 @@ export function Cabecalho() {
           </Button>
         )}
       </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="md:hidden" aria-label="Abrir menu principal">
+            <Menu />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>Navegação</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {LINKS.map((l) => (
+            <DropdownMenuItem key={l.para} asChild>
+              <NavLink to={l.para} end={l.para === "/"} className="min-h-11">
+                {({ isActive }) => (
+                  <>
+                    <Check className={cn(isActive ? "opacity-100" : "opacity-0")} aria-hidden="true" />
+                    {l.texto}
+                  </>
+                )}
+              </NavLink>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
       <DialogoConta aberto={conta} aoMudar={setConta} />
     </header>
   );

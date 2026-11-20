@@ -70,6 +70,7 @@
     font-feature-settings: "kern";
   }
   body { min-height: 100dvh; }
+  button, a { touch-action: manipulation; }
   :focus-visible {
     outline: 2px solid var(--color-ouro);
     outline-offset: 2px;
@@ -112,6 +113,7 @@
 .leaflet-popup-content { margin: 10px 14px; font-size: 13px; color: var(--color-tinta); }
 .leaflet-control-attribution { font-size: 10px; background: rgb(255 255 255 / 0.75) !important; }
 .leaflet-control-zoom a { color: var(--color-marinho) !important; }
+.leaflet-control-zoom a { width: 36px !important; height: 36px !important; line-height: 36px !important; }
 
 /* bairros aparecem a partir do Marco Zero na primeira carga */
 .pz-bairro { animation: pz-surge 700ms ease-out both; }

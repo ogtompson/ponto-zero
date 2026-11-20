@@ -62,6 +62,7 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
   const mapa = useMapa();
   const { regioes, alternarRegiao, cor } = useSelecao();
   const camada = useRef<L.GeoJSON | null>(null);
+  const mascara = useRef<L.Polygon | null>(null);
   const pinos = useRef<L.LayerGroup | null>(null);
   const primeiraVez = useRef(true);
 
@@ -80,15 +81,28 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
           click: () => estado.current.alternarRegiao(p.id_regiao),
           mouseover: (e) => (e.target as L.Path).setStyle({ weight: 2.4, color: "#19214A" }),
           mouseout: (e) => g.resetStyle(e.target as L.Path),
-          keypress: (e) => {
-            const tecla = (e as unknown as { originalEvent: KeyboardEvent }).originalEvent?.key;
-            if (tecla === "Enter" || tecla === " ") estado.current.alternarRegiao(p.id_regiao);
-          },
         });
       },
     });
     g.addTo(map);
     camada.current = g;
+    const mundo: L.LatLngExpression[] = [[-85, -180], [-85, 180], [85, 180], [85, -180]];
+    const bairros: L.LatLngExpression[][] = [];
+    for (const feature of mapa.data.features) {
+      const geometria = feature.geometry;
+      if (geometria.type === "Polygon") bairros.push(geometria.coordinates[0].map(([lng, lat]) => [lat, lng]));
+      if (geometria.type === "MultiPolygon") {
+        geometria.coordinates.forEach((poligono) => bairros.push(poligono[0].map(([lng, lat]) => [lat, lng])));
+      }
+    }
+    mascara.current = L.polygon([mundo, ...bairros], {
+      pane: "mascara",
+      stroke: false,
+      fillColor: "#f5f6fa",
+      fillOpacity: 1,
+      fillRule: "evenodd",
+      interactive: false,
+    }).addTo(map);
     pinos.current = L.layerGroup().addTo(map);
     map.fitBounds(g.getBounds(), { padding: [8, 8] });
     map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
@@ -103,9 +117,6 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
         const d = Math.hypot(p.lat - MARCO_ZERO[0], p.lng - MARCO_ZERO[1]);
         el.classList.add("pz-bairro");
         el.style.animationDelay = `${Math.round(d * 9000)}ms`;
-        el.setAttribute("tabindex", "0");
-        el.setAttribute("role", "button");
-        el.setAttribute("aria-label", `Bairro ${p.nome}`);
       });
     }
     function dica(p: Props) {
@@ -220,12 +231,20 @@ export function Mapa() {
         attributionControl
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a> | Bairros: Prefeitura do Recife'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+          maxNativeZoom={16}
+          maxZoom={18}
+          attribution='Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors and the GIS user community | Bairros: Prefeitura do Recife'
         />
         <Pane name="rotulos" style={{ zIndex: 450, pointerEvents: "none" }}>
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" pane="rotulos" opacity={0.85} />
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+            maxNativeZoom={16}
+            maxZoom={18}
+            pane="rotulos"
+          />
         </Pane>
+        <Pane name="mascara" style={{ zIndex: 460, pointerEvents: "none" }} />
         <Pane name="estabelecimentos" style={{ zIndex: 620 }} />
         <Pane name="pinos" style={{ zIndex: 660, pointerEvents: "none" }} />
         <CamadaBairros legenda={legenda} />
@@ -233,6 +252,9 @@ export function Mapa() {
         <ZoomCanto />
         <AjustaTamanho />
       </MapContainer>
+      <p className="pointer-events-none absolute left-3 top-3 z-[500] max-w-64 rounded-md bg-white/95 px-3 py-2 text-[11.5px] leading-snug text-tinta-suave shadow-sm">
+        Clique no mapa ou use <strong className="text-marinho">Procurar bairro</strong> para navegar pelo teclado.
+      </p>
       <Legenda legenda={legenda} />
     </div>
   );

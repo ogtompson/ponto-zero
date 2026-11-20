@@ -21,7 +21,7 @@ export function Explorar() {
           </p>
         </footer>
       </aside>
-      <main className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <section
           aria-label="Mapa dos bairros do Recife"
           className={cn("relative min-h-[320px] transition-[flex-basis] duration-300", resultadosGrandes ? "basis-[30%]" : "basis-[56%]")}
@@ -41,7 +41,7 @@ export function Explorar() {
         <section aria-label="Resultados" className="min-h-[340px] flex-1 border-t border-nevoa">
           <PainelResultados />
         </section>
-      </main>
+      </div>
     </div>
   );
 }
