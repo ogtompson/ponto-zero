@@ -213,12 +213,19 @@ export function Mapa() {
         attributionControl
       >
         <TileLayer
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
-          opacity={0.55}
-          className="pz-base-cartografica"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Bairros: Prefeitura do Recife'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+          maxNativeZoom={16}
+          maxZoom={18}
+          attribution='Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors and the GIS user community | Bairros: Prefeitura do Recife'
         />
+        <Pane name="rotulos" style={{ zIndex: 450, pointerEvents: "none" }}>
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+            maxNativeZoom={16}
+            maxZoom={18}
+            pane="rotulos"
+          />
+        </Pane>
         <Pane name="estabelecimentos" style={{ zIndex: 620 }} />
         <Pane name="pinos" style={{ zIndex: 660, pointerEvents: "none" }} />
         <CamadaBairros legenda={legenda} />

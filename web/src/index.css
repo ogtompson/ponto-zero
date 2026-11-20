@@ -95,10 +95,6 @@
   font-family: var(--font-sans);
   background: #e9ecf3;
 }
-.leaflet-tile-pane { background: #eef0f6; }
-.leaflet-layer.pz-base-cartografica .leaflet-tile {
-  filter: grayscale(1) saturate(0) contrast(0.72) brightness(1.16);
-}
 .leaflet-tooltip.pz-dica {
   background: var(--color-marinho);
   color: #fff;
