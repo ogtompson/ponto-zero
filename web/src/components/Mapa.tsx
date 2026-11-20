@@ -41,6 +41,8 @@ export function useLegenda() {
 
   return useMemo(() => {
     const valores = new Map<number, number | null>();
+    const quantidades = new Map<number, number>();
+    if (oferta.data) oferta.data.forEach((o) => quantidades.set(o.id_regiao, o.quantidade));
     if (cor === "oferta" && oferta.data) oferta.data.forEach((o) => valores.set(o.id_regiao, o.por_10k_hab));
     else
       regioes.data?.forEach((r) => valores.set(r.id_regiao, cor === "renda" ? r.renda : r.populacao));
@@ -53,7 +55,7 @@ export function useLegenda() {
           ? "Renda média domiciliar (Censo 2010)"
           : `${nomeSeg ?? "Estabelecimentos"} por 10 mil habitantes`;
     const fmt = (v: number) => (cor === "renda" ? `R$ ${num(v)}` : num(v, cor === "oferta" ? 1 : 0));
-    return { valores, cortes, titulo, fmt, min: Math.min(...lista), max: Math.max(...lista) };
+    return { valores, quantidades, cortes, titulo, fmt, min: Math.min(...lista), max: Math.max(...lista) };
   }, [cor, oferta.data, regioes.data, nomeSeg]);
 }
 
@@ -122,9 +124,14 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
     function dica(p: Props) {
       const { legenda: lg, regioes: sel, cor: c } = estado.current;
       const v = lg.valores.get(p.id_regiao);
-      const rotulo = c === "populacao" ? "Moradores" : c === "renda" ? "Renda média" : "Por 10 mil hab.";
       const valor = v == null ? "indisponível" : lg.fmt(v);
       const acao = sel.includes(p.id_regiao) ? "Clique para tirar da seleção" : "Clique para incluir na seleção";
+      if (c === "oferta") {
+        const quantidade = lg.quantidades.get(p.id_regiao);
+        const total = quantidade == null ? "indisponível" : num(quantidade);
+        return `<strong style="font-size:13.5px">${p.nome}</strong><br/>Empresas formais: ${total}<br/>Por 10 mil moradores: ${valor}<br/><span style="opacity:.7">${acao}</span>`;
+      }
+      const rotulo = c === "populacao" ? "Moradores" : "Renda média";
       return `<strong style="font-size:13.5px">${p.nome}</strong><br/>${rotulo}: ${valor}<br/><span style="opacity:.7">${acao}</span>`;
     }
   }, [mapa.data, map]);
