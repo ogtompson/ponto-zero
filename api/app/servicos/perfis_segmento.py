@@ -7,102 +7,19 @@ diagnosticá-lo.
 
 from __future__ import annotations
 
+import json
 from copy import deepcopy
+from pathlib import Path
 
 
-VERSAO_CATALOGO = "2026.11.1"
+_ARQUIVO_CATALOGO = Path(__file__).resolve().parents[1] / "data" / "catalogo-segmentos.json"
+_CATALOGO = json.loads(_ARQUIVO_CATALOGO.read_text(encoding="utf-8"))
+VERSAO_CATALOGO = _CATALOGO["versao"]
+_PERFIS = tuple(_CATALOGO["segmentos"])
 
-_PERFIS = (
-    {
-        "slug": "farmacia",
-        "nome": "Farmácia",
-        "maturidade": "especializado",
-        "disponibilidade": "piloto",
-        "direcionadores": ["população residente", "pessoas com 60 anos ou mais", "renda", "oferta formal"],
-        "area_influencia": {"modo": "caminhada", "minutos": 15},
-        "cnaes_diretos": ["4771-7/01", "4771-7/02", "4771-7/03"],
-    },
-    {
-        "slug": "cafeteria",
-        "nome": "Cafeteria",
-        "maturidade": "configurado",
-        "disponibilidade": "piloto",
-        "direcionadores": ["renda", "polos de trabalho e estudo", "fluxo diurno", "oferta próxima"],
-        "area_influencia": {"modo": "caminhada", "minutos": 10},
-    },
-    {
-        "slug": "academia",
-        "nome": "Academia",
-        "maturidade": "configurado",
-        "disponibilidade": "piloto",
-        "direcionadores": ["densidade residencial", "perfil etário", "renda", "concorrência próxima"],
-        "area_influencia": {"modo": "deslocamento", "minutos": 15},
-    },
-    {
-        "slug": "supermercado",
-        "nome": "Supermercado",
-        "maturidade": "configurado",
-        "disponibilidade": "piloto",
-        "direcionadores": ["domicílios", "renda", "acesso viário", "porte da oferta"],
-        "area_influencia": {"modo": "deslocamento", "minutos": 15},
-    },
-    {
-        "slug": "padaria",
-        "nome": "Padaria",
-        "maturidade": "configurado",
-        "disponibilidade": "piloto",
-        "direcionadores": ["domicílios", "densidade residencial", "renda", "oferta de conveniência"],
-        "area_influencia": {"modo": "caminhada", "minutos": 10},
-    },
-    {
-        "slug": "pet-shop",
-        "nome": "Pet shop",
-        "maturidade": "configurado",
-        "disponibilidade": "piloto",
-        "direcionadores": ["domicílios", "renda", "serviços complementares", "oferta próxima"],
-        "area_influencia": {"modo": "deslocamento", "minutos": 15},
-    },
-    {
-        "slug": "restaurante",
-        "nome": "Restaurante e lanchonete",
-        "maturidade": "geral",
-        "disponibilidade": "preparacao",
-        "direcionadores": ["fluxo por período", "trabalho e estudo", "renda", "oferta por ocasião"],
-        "area_influencia": {"modo": "caminhada", "minutos": 15},
-    },
-    {
-        "slug": "beleza",
-        "nome": "Salão de beleza e barbearia",
-        "maturidade": "geral",
-        "disponibilidade": "preparacao",
-        "direcionadores": ["população residente", "perfil do público", "renda", "recorrência"],
-        "area_influencia": {"modo": "deslocamento", "minutos": 15},
-    },
-    {
-        "slug": "clinica",
-        "nome": "Clínica e consultório",
-        "maturidade": "geral",
-        "disponibilidade": "preparacao",
-        "direcionadores": ["perfil etário", "renda", "acessibilidade", "polos de saúde"],
-        "area_influencia": {"modo": "deslocamento", "minutos": 20},
-    },
-    {
-        "slug": "educacao",
-        "nome": "Escola e curso",
-        "maturidade": "geral",
-        "disponibilidade": "preparacao",
-        "direcionadores": ["faixa etária", "domicílios", "renda", "acessibilidade"],
-        "area_influencia": {"modo": "deslocamento", "minutos": 20},
-    },
-    {
-        "slug": "moda",
-        "nome": "Roupas e calçados",
-        "maturidade": "geral",
-        "disponibilidade": "preparacao",
-        "direcionadores": ["renda", "fluxo comercial", "centralidade", "oferta complementar"],
-        "area_influencia": {"modo": "deslocamento", "minutos": 20},
-    },
-)
+for _perfil in _PERFIS:
+    if "cnaes_oferta" in _perfil:
+        _perfil["cnaes_diretos"] = [item["codigo"] for item in _perfil["cnaes_oferta"]]
 
 _POR_NOME = {perfil["nome"].casefold(): perfil for perfil in _PERFIS}
 
