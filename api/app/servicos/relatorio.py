@@ -112,7 +112,7 @@ def gerar_pdf(comparacao: dict, analise: dict, usuario: dict | None) -> bytes:
     nomes = [r["nome"] for r in comparacao["regioes"]]
     historia.append(Paragraph(f"{segmento} em {', '.join(nomes[:-1])} e {nomes[-1]}", est["titulo"]))
     historia.append(Spacer(1, 2 * mm))
-    historia.append(Paragraph("Comparação de regiões e da oferta observada com a referência municipal. Recife, PE.", est["suave"]))
+    historia.append(Paragraph("Comparação de regiões e da oferta formal com a referência municipal. Recife, PE.", est["suave"]))
     historia.append(Spacer(1, 5 * mm))
 
     aviso = Table([[Paragraph(AVISO_NAO_RECOMENDACAO, est["aviso"])]], colWidths=[None])
@@ -130,7 +130,7 @@ def gerar_pdf(comparacao: dict, analise: dict, usuario: dict | None) -> bytes:
     historia.append(aviso)
 
     # ---------------------------------------------------------------- análise
-    historia.append(Paragraph("Oferta observada e referência", est["h2"]))
+    historia.append(Paragraph("Oferta formal e referência", est["h2"]))
     linhas = [[Paragraph("Região", est["celula_b"]), Paragraph("Resultado", est["celula_b"]),
                Paragraph("Observados", est["celula_b"]), Paragraph("Referência", est["celula_b"]),
                Paragraph("Motivo", est["celula_b"])]]
@@ -227,7 +227,7 @@ def gerar_csv(comparacao: dict, analise: dict) -> bytes:
     w.writerow(["Segmento", analise["segmento"]["nome"]])
     w.writerow(["Regiões", ", ".join(nomes)])
     w.writerow([])
-    w.writerow(["Oferta observada e referência"])
+    w.writerow(["Oferta formal e referência"])
     w.writerow(["Região", "Resultado", "Observados", "Referência proporcional", "Relação observado/referência", "Motivo"])
     for r in analise["resultados"]:
         w.writerow([r["nome"], r["rotulo"], r["encontrados"], br(r["esperado"], 1), br(r["cobertura"], 2), r["motivo"]])

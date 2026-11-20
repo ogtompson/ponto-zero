@@ -30,8 +30,8 @@ AVISO_APROXIMACAO = (
     "não demonstram demanda não atendida."
 )
 AVISO_OFERTA = (
-    "A oferta mostra registros observados em uma fonte de cobertura parcial. "
-    "Ausência de registro não confirma ausência de estabelecimentos."
+    "A oferta contabiliza empresas formais ativas nos CNAEs definidos para cada segmento. "
+    "Ela não inclui informalidade e o recorte CNAE pode abranger atividades similares."
 )
 AVISO_NAO_RECOMENDACAO = (
     "Este resultado não é recomendação definitiva de investimento e não substitui "

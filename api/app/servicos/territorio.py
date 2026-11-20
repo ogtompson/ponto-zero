@@ -6,8 +6,10 @@ histórias de usuário estão comentadas no ponto onde são aplicadas.
 
 from __future__ import annotations
 
+import json
 import unicodedata
 from functools import lru_cache
+from pathlib import Path
 
 from fastapi import HTTPException
 
@@ -23,6 +25,7 @@ from .diagnostico import montar_diagnostico
 from .perfis_segmento import perfil_por_nome
 
 MAX_REGIOES = 8  # HU-008: limite definido pela equipe para manter a comparação legível
+_ARQUIVO_QUALIDADE_OFERTA = Path(__file__).resolve().parents[1] / "data" / "qualidade-oferta.json"
 
 
 def erro(status: int, mensagem: str, campo: str | None = None) -> HTTPException:
@@ -74,8 +77,19 @@ def listar_segmentos() -> list[dict]:
 
 def _aplicar_perfil(segmento: dict) -> dict:
     perfil = perfil_por_nome(segmento["nome"])
-    for campo in ("slug", "maturidade", "disponibilidade", "direcionadores", "area_influencia"):
-        segmento[campo] = perfil[campo]
+    for campo in (
+        "slug",
+        "maturidade",
+        "disponibilidade",
+        "direcionadores",
+        "area_influencia",
+        "perimetro_oferta",
+        "precisao_oferta",
+        "cnaes_oferta",
+        "cnaes_diretos",
+    ):
+        if campo in perfil:
+            segmento[campo] = perfil[campo]
     return segmento
 
 
@@ -141,25 +155,47 @@ def metadados_oferta() -> dict:
             meta[k.strip()] = v.strip() or None
     if not meta["fonte"]:
         meta["fonte"] = "Fonte não identificada"
-    # A coleta do OpenStreetMap não comprova que um bairro sem registros tenha
-    # oferta igual a zero. Até existir uma medição de cobertura por região e
-    # categoria, a API trata a camada como observacional e parcial.
-    if meta["cobertura"] not in {"parcial", "verificada"}:
+    if meta["cobertura"] not in {"parcial", "cadastral", "verificada"}:
         meta["cobertura"] = "parcial"
     return meta
 
 
-def qualidade_oferta(meta: dict) -> dict:
+@lru_cache(maxsize=1)
+def _catalogo_qualidade_oferta() -> dict:
+    if not _ARQUIVO_QUALIDADE_OFERTA.exists():
+        return {"segmentos": {}}
+    return json.loads(_ARQUIVO_QUALIDADE_OFERTA.read_text(encoding="utf-8"))
+
+
+def qualidade_oferta(meta: dict, segmento: dict | None = None) -> dict:
     verificada = meta["cobertura"] == "verificada"
-    return {
+    cadastral = meta["cobertura"] == "cadastral"
+    metricas = _catalogo_qualidade_oferta().get("segmentos", {}).get(
+        segmento.get("slug") if segmento else "", {}
+    )
+    resultado = {
         "cobertura": meta["cobertura"],
         "zero_confirmado": verificada,
         "descricao": (
             "Cobertura verificada para o recorte analisado."
             if verificada
+            else "Cobertura cadastral de empresas formais ativas; não inclui informalidade."
+            if cadastral
             else "Cobertura parcial: ausência de registro não confirma ausência de estabelecimentos."
         ),
     }
+    if metricas:
+        resultado.update(
+            {
+                "cnpjs_formais": metricas["cnpjs_unicos"],
+                "registros_associados": metricas["registros_carregados"],
+                "coordenadas_precisas": metricas["coordenadas_precisas"],
+                "descartados_sem_bairro": metricas["descartados_sem_bairro"],
+                "criterio": segmento.get("perimetro_oferta"),
+                "precisao_segmento": segmento.get("precisao_oferta"),
+            }
+        )
+    return resultado
 
 
 def catalogo_indicadores() -> list[dict]:
@@ -240,7 +276,7 @@ def oferta(id_categoria: int | None, ids: list[int]) -> dict:
                     "por_10k_hab": float(l["por_10k_hab"]) if l and l["por_10k_hab"] is not None else None,
                     "mensagem": None
                     if qtd
-                    else "nenhum estabelecimento observado na base; a cobertura é parcial",
+                    else "nenhuma empresa formal ativa encontrada neste recorte cadastral",
                     "status_dado": "observado" if qtd else "sem_registro_observado",
                 }
             )
@@ -255,7 +291,7 @@ def oferta(id_categoria: int | None, ids: list[int]) -> dict:
         SELECT e.id_estabelecimento AS id, e.nome, e.latitude AS lat, e.longitude AS lng,
                e.endereco, e.id_regiao, r.nome AS regiao
         FROM estabelecimento e JOIN regiao r ON r.id_regiao = e.id_regiao
-        WHERE e.id_categoria = %s {filtro}
+        WHERE e.id_categoria = %s AND e.latitude IS NOT NULL AND e.longitude IS NOT NULL {filtro}
         ORDER BY e.nome
         """,
         params,
@@ -271,7 +307,7 @@ def oferta(id_categoria: int | None, ids: list[int]) -> dict:
         "metrica": "estabelecimentos por 10 mil habitantes",
         "regioes": resumo,
         "estabelecimentos": pontos,
-        "qualidade": qualidade_oferta(meta),
+        "qualidade": qualidade_oferta(meta, seg),
         "aviso": AVISO_OFERTA,
     }
 
@@ -389,8 +425,8 @@ def analise(id_categoria: int | None, ids: list[int]) -> dict:
                 "cobertura": float(l["cobertura"]) if l["cobertura"] is not None else None,
                 "classificacao": classificacao,
                 "rotulo": {
-                    "oferta_observada_baixa": "Oferta observada abaixo da referência",
-                    "oferta_observada_compativel": "Oferta observada próxima ou acima da referência",
+                    "oferta_observada_baixa": "Oferta formal abaixo da referência",
+                    "oferta_observada_compativel": "Oferta formal próxima ou acima da referência",
                     "nao_classificada": "Comparação indisponível",
                 }[classificacao],
                 "motivo": l["motivo"].replace(".", ","),
@@ -409,8 +445,8 @@ def analise(id_categoria: int | None, ids: list[int]) -> dict:
             "regra": "População residente usada apenas para normalizar a comparação",
         },
         {
-            "nome": "Oferta observada",
-            "regra": f"Registros de {seg['nome'].lower()} encontrados na base para a região",
+            "nome": "Oferta formal",
+            "regra": f"CNPJs ativos de {seg['nome'].lower()} associados ao bairro no recorte CNAE",
         },
         {
             "nome": "Referência da cidade",
@@ -421,10 +457,10 @@ def analise(id_categoria: int | None, ids: list[int]) -> dict:
             "regra": "Referência × população ÷ 10 mil",
         },
         {
-            "nome": "Oferta observada abaixo da referência",
+            "nome": "Oferta formal abaixo da referência",
             "regra": (
                 f"Referência proporcional de pelo menos {_br(config.analise_min_esperado, 0)} registros "
-                f"e oferta observada de até {int(config.analise_cobertura_max * 100)}% dessa referência"
+                f"e oferta formal de até {int(config.analise_cobertura_max * 100)}% dessa referência"
             ),
         },
     ]
@@ -437,7 +473,7 @@ def analise(id_categoria: int | None, ids: list[int]) -> dict:
         },
         "criterios": criterios,
         "resultados": resultados,
-        "qualidade_oferta": qualidade_oferta(meta),
+        "qualidade_oferta": qualidade_oferta(meta, seg),
         # RN06: fontes usadas no cálculo
         "fontes": [
             {"fonte": pop_fonte["fonte"], "data_texto": _data(pop_fonte["data_referencia"]) or SEM_DATA, "usada_em": ["População"]},
