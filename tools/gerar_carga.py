@@ -26,7 +26,6 @@ import unicodedata
 from datetime import date
 from pathlib import Path
 
-import bcrypt
 from shapely.geometry import mapping, shape
 
 RAIZ = Path(__file__).resolve().parents[1]
@@ -44,6 +43,7 @@ FONTE_POP = "IBGE, Censo Demográfico 2022 (SIDRA 9923)"
 FONTE_DOM = "IBGE, Censo Demográfico 2022 (SIDRA 9922)"
 FONTE_RENDA = "IBGE, Censo Demográfico 2010 (SIDRA 3345)"
 FONTE_AREA = "Prefeitura do Recife, Portal de Dados Abertos"
+SENHA_DEMO_HASH = "$2b$12$0g8P//8GnkldcBOI0op3gebCSWWYOe8MQnasaHiSAtR./RWATkBla"
 
 def norm(texto: str) -> str:
     texto = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode().lower()
@@ -192,12 +192,11 @@ def main(caminho: str) -> None:
     w("")
 
     # Conta de demonstracao para a apresentacao (senha documentada no README)
-    senha_demo = bcrypt.hashpw(b"pontozero2026", bcrypt.gensalt(rounds=12)).decode()
     w("-- Empresa e usuario de demonstracao (login: demo@pontozero.app / pontozero2026)")
     w("INSERT INTO empresa (nome, cnpj, segmento) VALUES ('Rede Farma Nordeste (demonstração)', NULL, 'Farmácia');")
     w(
         "INSERT INTO usuario (nome, email, senha, perfil, id_empresa) "
-        f"SELECT 'Demonstração PontoZero', 'demo@pontozero.app', {sql_txt(senha_demo)}, 'admin', id_empresa "
+        f"SELECT 'Demonstração PontoZero', 'demo@pontozero.app', {sql_txt(SENHA_DEMO_HASH)}, 'admin', id_empresa "
         "FROM empresa WHERE nome = 'Rede Farma Nordeste (demonstração)';"
     )
     w("")
