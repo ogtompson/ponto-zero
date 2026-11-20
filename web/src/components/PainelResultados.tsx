@@ -40,7 +40,7 @@ export function PainelResultados() {
   return (
     <Tabs value={aba} onValueChange={setAba} className="flex h-full flex-col">
       <div className="flex flex-wrap items-center gap-2 border-b border-nevoa bg-white px-3 py-2">
-        <TabsList aria-label="Resultados">
+        <TabsList aria-label="Resultados" className="max-w-full overflow-x-auto">
           <TabsTrigger value="indicadores">
             <BarChart3 /> Indicadores
           </TabsTrigger>

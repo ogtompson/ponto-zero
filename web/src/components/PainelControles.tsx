@@ -32,6 +32,10 @@ export function PainelControles() {
 
   return (
     <div className="flex flex-col divide-y divide-nevoa">
+      <div className="px-5 pb-1 pt-5">
+        <h1 className="larga text-[24px] font-extrabold leading-tight text-marinho">Explore bairros do Recife</h1>
+        <p className="mt-1 text-[13px] leading-relaxed text-tinta-suave">Compare dados locais antes de escolher onde abrir seu negócio.</p>
+      </div>
       <Bloco titulo="O que você quer abrir?">
         {segmentos.isLoading ? (
           <div className="grid grid-cols-2 gap-2">
@@ -75,7 +79,7 @@ export function PainelControles() {
               <li key={id}>
                 <button
                   onClick={() => removerRegiao(id)}
-                  className="group flex items-center gap-1.5 rounded-full bg-ouro-claro py-1 pl-1.5 pr-2.5 text-[13px] font-semibold text-marinho hover:bg-ouro/45 cursor-pointer"
+                  className="group flex min-h-9 items-center gap-1.5 rounded-full bg-ouro-claro py-1 pl-2 pr-3 text-[13px] font-semibold text-marinho hover:bg-ouro/45 cursor-pointer"
                   aria-label={`Tirar ${porId.get(id)?.nome ?? "bairro"} da seleção`}
                 >
                   <Pino tamanho={12} />
