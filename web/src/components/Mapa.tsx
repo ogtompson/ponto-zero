@@ -80,10 +80,6 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
           click: () => estado.current.alternarRegiao(p.id_regiao),
           mouseover: (e) => (e.target as L.Path).setStyle({ weight: 2.4, color: "#19214A" }),
           mouseout: (e) => g.resetStyle(e.target as L.Path),
-          keypress: (e) => {
-            const tecla = (e as unknown as { originalEvent: KeyboardEvent }).originalEvent?.key;
-            if (tecla === "Enter" || tecla === " ") estado.current.alternarRegiao(p.id_regiao);
-          },
         });
       },
     });
@@ -103,9 +99,6 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
         const d = Math.hypot(p.lat - MARCO_ZERO[0], p.lng - MARCO_ZERO[1]);
         el.classList.add("pz-bairro");
         el.style.animationDelay = `${Math.round(d * 9000)}ms`;
-        el.setAttribute("tabindex", "0");
-        el.setAttribute("role", "button");
-        el.setAttribute("aria-label", `Bairro ${p.nome}`);
       });
     }
     function dica(p: Props) {
@@ -220,12 +213,10 @@ export function Mapa() {
         attributionControl
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a> | Bairros: Prefeitura do Recife'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={19}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Bairros: Prefeitura do Recife'
         />
-        <Pane name="rotulos" style={{ zIndex: 450, pointerEvents: "none" }}>
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" pane="rotulos" opacity={0.85} />
-        </Pane>
         <Pane name="estabelecimentos" style={{ zIndex: 620 }} />
         <Pane name="pinos" style={{ zIndex: 660, pointerEvents: "none" }} />
         <CamadaBairros legenda={legenda} />
@@ -233,6 +224,9 @@ export function Mapa() {
         <ZoomCanto />
         <AjustaTamanho />
       </MapContainer>
+      <p className="pointer-events-none absolute left-3 top-3 z-[500] max-w-64 rounded-md bg-white/95 px-3 py-2 text-[11.5px] leading-snug text-tinta-suave shadow-sm">
+        Clique no mapa ou use <strong className="text-marinho">Procurar bairro</strong> para navegar pelo teclado.
+      </p>
       <Legenda legenda={legenda} />
     </div>
   );
