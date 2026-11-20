@@ -23,6 +23,7 @@ export function AbaOferta() {
   const seg = salva.snapshot?.selection.segmento ?? segs.data?.find((s) => s.id_categoria === segmento);
   const referencia = seg?.por_10k_hab ?? 0;
   const maximo = Math.max(referencia * 1.4, ...d.regioes.map((r) => r.por_10k_hab ?? 0)) || 1;
+  const totalOferta = d.qualidade.registros_associados ?? d.segmento.total_estabelecimentos ?? d.estabelecimentos.length;
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:flex-row">
@@ -31,8 +32,8 @@ export function AbaOferta() {
           <div className="flex items-center gap-3 rounded-lg border border-nevoa bg-white p-4">
             <IconeSegmento nome={d.segmento.nome} className="size-6 text-marinho-3" />
             <p className="text-[15px]">
-              <strong className="numeros">{num(d.estabelecimentos.length)}</strong> {d.segmento.nome.toLowerCase()}s no mapa do Recife.
-              Escolha bairros para ver a concentração em cada um.
+              <strong className="numeros">{num(totalOferta)}</strong> empresas formais ativas no Recife para este recorte.
+              Escolha bairros para comparar a concentração.
             </p>
           </div>
         ) : (
@@ -75,7 +76,17 @@ export function AbaOferta() {
           Fonte: <span className="font-semibold text-marinho">{d.fonte}</span>
           <FonteInfo fonte={d.fonte} data={d.data_referencia} rotulo="oferta comercial" />
         </p>
-        <p className="text-[13px] text-tinta-suave">Extraído em {dataBr(d.data_referencia)}</p>
+        <p className="text-[13px] text-tinta-suave">Base atualizada em {dataBr(d.data_referencia)}</p>
+        {d.qualidade.criterio && (
+          <p className="text-[13px] leading-relaxed text-tinta-suave">
+            <span className="font-semibold text-marinho">Recorte:</span> {d.qualidade.criterio}
+          </p>
+        )}
+        {d.qualidade.coordenadas_precisas === 0 && (
+          <p className="text-[13px] leading-relaxed text-tinta-suave">
+            O mapa colore os bairros pela contagem cadastral. A fonte não informa pontos precisos para marcadores.
+          </p>
+        )}
         <Aviso>{d.qualidade.descricao}</Aviso>
       </aside>
     </div>

@@ -80,6 +80,10 @@ export type Segmento = {
   disponibilidade: "piloto" | "preparacao" | "personalizado";
   direcionadores: string[];
   area_influencia: null | { modo: "caminhada" | "deslocamento"; minutos: number };
+  perimetro_oferta?: string;
+  precisao_oferta?: "direta" | "aproximada";
+  cnaes_oferta?: { codigo: string; descricao: string }[];
+  cnaes_diretos?: string[];
 };
 
 export type Regiao = {
@@ -141,9 +145,15 @@ export type RespostaOferta = {
 };
 
 export type QualidadeOferta = {
-  cobertura: "parcial" | "verificada";
+  cobertura: "parcial" | "cadastral" | "verificada";
   zero_confirmado: boolean;
   descricao: string;
+  cnpjs_formais?: number;
+  registros_associados?: number;
+  coordenadas_precisas?: number;
+  descartados_sem_bairro?: number;
+  criterio?: string;
+  precisao_segmento?: "direta" | "aproximada";
 };
 
 export type Fonte = { fonte: string; data_texto: string; usada_em: string[] };
