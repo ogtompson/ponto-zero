@@ -9,9 +9,9 @@ import { DialogoConta } from "./DialogoConta";
 import { LogoPontoZero } from "./Marca";
 
 const LINKS = [
-  { para: "/", texto: "Explorar" },
+  { para: "/", texto: "Início" },
+  { para: "/explorar", texto: "Explorar" },
   { para: "/analises", texto: "Minhas análises" },
-  { para: "/infraestrutura", texto: "Infraestrutura" },
 ];
 
 export function Cabecalho() {
