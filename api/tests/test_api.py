@@ -174,17 +174,32 @@ def test_conta_completa(cliente):
     assert cliente.post("/api/auth/login", json={"email": email, "senha": "12345678"}).status_code == 200
     assert cliente.get("/api/auth/sessao").json()["email"] == email
 
-    # análise salva no segmento da empresa (Padaria)
+    # o segmento pertence à análise e o estado fica congelado
     pina, boa_viagem = ids(cliente, "Pina", "Boa Viagem")
-    outro = cliente.post("/api/analises", json={"nome": "X", "segmento": "Farmácia", "regioes": [pina]})
-    assert outro.status_code == 409
-    criada = cliente.post("/api/analises", json={"nome": "Orla", "segmento": "Padaria", "regioes": [pina, boa_viagem]}).json()
-    assert len(criada["regioes"]) == 2
-
-    # exportar a partir da análise salva grava em RELATORIO
     padaria = id_segmento(cliente, "Padaria")
-    pdf = cliente.post("/api/exportacoes", json={"segmento": padaria, "regioes": [pina, boa_viagem], "formato": "PDF", "id_analise": criada["id_analise"]})
-    assert pdf.status_code == 200 and pdf.content[:4] == b"%PDF"
+    farmacia = id_segmento(cliente, "Farmácia")
+    incompleta = cliente.post("/api/analises", json={"nome": "X", "segmento": farmacia, "regioes": [pina]})
+    assert incompleta.status_code == 422
+    criada = cliente.post("/api/analises", json={"nome": "Orla", "segmento": padaria, "regioes": [pina, boa_viagem]}).json()
+    assert len(criada["regioes"]) == 2
+    assert criada["segmento"] == "Padaria"
+    assert criada["snapshot_disponivel"] is True
+    assert criada["versao_metodologia"] == "2026.11.1"
+    assert criada["snapshot"]["selection"]["segmento"]["nome"] == "Padaria"
+    admin = os.getenv("ADMIN_DATABASE_URL")
+    if admin:
+        with psycopg.connect(admin, autocommit=True) as conn:
+            with pytest.raises(psycopg.errors.RaiseException, match="snapshot de análise é imutável"):
+                conn.execute(
+                    "UPDATE analise SET versao_metodologia = 'alterada' WHERE id_analise = %s",
+                    (criada["id_analise"],),
+                )
+
+    # o id salvo prevalece sobre filtros atuais: a exportação usa o snapshot
+    csv = cliente.post("/api/exportacoes", json={"segmento": farmacia, "regioes": [pina], "formato": "CSV", "id_analise": criada["id_analise"]})
+    texto = csv.content.decode("utf-8-sig")
+    assert csv.status_code == 200 and "Segmento;Padaria" in texto
+    assert "Regiões;Pina, Boa Viagem" in texto
     assert cliente.get(f"/api/analises/{criada['id_analise']}").json()["qtd_relatorios"] == 1
 
     assert cliente.delete(f"/api/analises/{criada['id_analise']}").status_code == 204

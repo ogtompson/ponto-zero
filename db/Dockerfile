@@ -17,6 +17,7 @@ ENV POSTGRES_DB=pontozero \
     LANG=C.UTF-8
 
 COPY init/ /docker-entrypoint-initdb.d/
+COPY migrations/ /opt/pontozero/migrations/
 # remove o "\r" caso os arquivos tenham passado por um Windows (CRLF quebra o .sh)
 RUN sed -i 's/\r$//' /docker-entrypoint-initdb.d/* \
  && chmod 0755 /docker-entrypoint-initdb.d/*.sh

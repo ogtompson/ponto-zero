@@ -1,5 +1,5 @@
 // HU-006: oferta comercial do segmento e concentração por região (mesma métrica para todas).
-import { useOferta, useSegmentos } from "@/hooks/dados";
+import { useOferta, useSegmentos, useSnapshotDaSelecao } from "@/hooks/dados";
 import { dataBr, num } from "@/lib/formato";
 import { useSelecao } from "@/lib/selecao";
 import { Aviso } from "../Aviso";
@@ -12,13 +12,15 @@ export function AbaOferta() {
   const { segmento, regioes } = useSelecao();
   const segs = useSegmentos();
   const q = useOferta(segmento, regioes);
+  const salva = useSnapshotDaSelecao(segmento, regioes);
 
   if (segmento == null)
     return <Vazio titulo="Escolha um segmento para ver a oferta comercial">A oferta e a análise dependem do tipo de negócio.</Vazio>;
-  if (q.isLoading) return <Carregando />;
-  if (q.isError) return <Vazio titulo="Não deu para carregar a oferta">{(q.error as Error).message}</Vazio>;
-  const d = q.data!;
-  const seg = segs.data?.find((s) => s.id_categoria === segmento);
+  if (salva.id && salva.isLoading) return <Carregando />;
+  if (q.isLoading && !salva.snapshot) return <Carregando />;
+  if (q.isError && !salva.snapshot) return <Vazio titulo="Não deu para carregar a oferta">{(q.error as Error).message}</Vazio>;
+  const d = salva.snapshot?.oferta ?? q.data!;
+  const seg = salva.snapshot?.selection.segmento ?? segs.data?.find((s) => s.id_categoria === segmento);
   const referencia = seg?.por_10k_hab ?? 0;
   const maximo = Math.max(referencia * 1.4, ...d.regioes.map((r) => r.por_10k_hab ?? 0)) || 1;
 

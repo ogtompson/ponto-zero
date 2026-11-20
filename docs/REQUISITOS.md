@@ -73,9 +73,12 @@ Extras que a disciplina cobre: build em duas etapas (api e web), usuário sem ro
 | 010 | sem análise na tela, a ação fica indisponível | botão desabilitado + API recusa | `test_exportacao_sem_analise_fica_indisponivel` |
 | 010 | falha na geração: mensagem e nova tentativa | aviso com botão "Tentar de novo" | manual |
 | 010 | exportar uma análise salva registra em RELATORIO | `POST /api/exportacoes` com `id_analise` | `test_conta_completa` |
+| 010 | análise salva preserva segmento, dados, fontes e versão da metodologia | `analise.snapshot` em JSONB | `test_conta_completa` |
+| 010 | exportação de análise salva usa o snapshot, mesmo se os filtros enviados forem diferentes | API prioriza `id_analise` autenticado | `test_conta_completa` |
 
 ## Decisões que a equipe pode querer rever
 
-- **Segmento da análise salva.** O DER liga ANALISE a EMPRESA, e o segmento está em `empresa.segmento`. Por isso a análise é salva para o segmento da empresa. Se a equipe quiser salvar análises de outros segmentos, basta acrescentar `id_categoria` em ANALISE.
+- **Segmento da análise salva.** `ANALISE.id_categoria` registra o segmento estudado sem limitar a empresa a um único tipo de pesquisa.
+- **Rastreabilidade.** Novas análises guardam um snapshot JSONB e a versão da metodologia. Registros anteriores à migração são identificados como legados e continuam consultáveis.
 - **Unidade do indicador.** O DER não tem coluna de unidade; ela vem da view `vw_catalogo_indicador`.
 - **Fonte da oferta.** ESTABELECIMENTO não tem coluna de fonte; a fonte e a data da extração ficam no comentário da tabela (`COMMENT ON TABLE`), lido pela API.

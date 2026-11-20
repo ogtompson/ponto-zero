@@ -12,15 +12,15 @@
 
 ![Oferta observada e referência municipal](docs/img/analise.png)
 
-## Rodar em um comando
+## Rodar localmente em um comando
 
 Com o Docker Desktop aberto, na pasta do projeto:
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-Abra **http://localhost:8080**. Na primeira vez o Docker baixa as três imagens do Docker Hub e o banco é criado com os dados reais (leva uns 30 segundos).
+Abra **http://localhost:8080**. O override local é carregado automaticamente e constrói as imagens usando o código deste repositório. Depois de alterar o código, execute o mesmo comando novamente.
 
 | Para | Comando |
 |---|---|
@@ -28,7 +28,8 @@ Abra **http://localhost:8080**. Na primeira vez o Docker baixa as três imagens 
 | Ver os logs | `docker compose logs -f` |
 | Desligar (os dados ficam) | `docker compose down` |
 | Desligar e apagar os dados | `docker compose down -v` |
-| Construir a partir do código | `docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build` |
+| Atualizar com o código local | `docker compose up -d --build` |
+| Usar somente imagens publicadas | `docker compose -f docker-compose.yml up -d` |
 
 Conta de demonstração: `demo@pontozero.app`, senha `pontozero2026`. Explorar o mapa não exige conta.
 
@@ -41,7 +42,7 @@ O banco também fica acessível no pgAdmin/DBeaver em `localhost:55432` (banco `
 | No mínimo 2 imagens: banco e aplicação | 3 imagens: [`db`](db/Dockerfile), [`api`](api/Dockerfile) e [`web`](web/Dockerfile) |
 | Imagens no Docker Hub | `ogabrieltenorio/pontozero-db`, `-api` e `-web`, publicadas por [`scripts/publicar.ps1`](scripts/publicar.ps1) |
 | Compose que sobe aplicação + banco | [`docker-compose.yml`](docker-compose.yml): sobe só com as imagens, sem precisar do código |
-| Subir sem problemas e rodar | `healthcheck` nos 3 serviços e `depends_on: service_healthy`: a API espera o banco, o site espera a API |
+| Subir sem problemas e rodar | `healthcheck` nos serviços persistentes e migração idempotente: a API espera banco e schema, o site espera a API |
 | Desligar e religar mantendo os dados | volume nomeado `pgdata`; testado por [`scripts/testar-persistencia.ps1`](scripts/testar-persistencia.ps1) |
 | Funcionalidades de Banco de Dados | modelo da equipe com as 9 tabelas, restrições, índices, triggers, views e função de análise: veja [docs/BANCO.md](docs/BANCO.md) |
 
@@ -80,6 +81,7 @@ As 9 tabelas seguem o DER da equipe sem mudança de nomes. Detalhes, dicionário
 erDiagram
     EMPRESA ||--o{ USUARIO : possui
     EMPRESA ||--o{ ANALISE : realiza
+    CATEGORIA ||--o{ ANALISE : contextualiza
     ANALISE ||--|{ REGIAO_ANALISE : inclui
     REGIAO ||--o{ REGIAO_ANALISE : "aparece em"
     ANALISE ||--o{ RELATORIO : gera

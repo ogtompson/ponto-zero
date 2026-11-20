@@ -24,7 +24,7 @@ export function DialogoSalvar({ aberto, aoMudar }: { aberto: boolean; aoMudar: (
 
   const salvar = useMutation({
     mutationFn: (dados: { nome: string; objetivo: string }) =>
-      api.post<AnaliseSalva>("/analises", { ...dados, segmento: nomeSeg, regioes }),
+      api.post<AnaliseSalva>("/analises", { ...dados, segmento, regioes }),
     onSuccess: (a) => {
       // a seleção atual passa a ser esta análise salva: exportar agora registra em RELATORIO
       setParams(
@@ -53,7 +53,7 @@ export function DialogoSalvar({ aberto, aoMudar }: { aberto: boolean; aoMudar: (
           <DialogTitle>Salvar análise</DialogTitle>
           <DialogDescription>
             {nomeSeg ? `${nomeSeg} em ` : ""}
-            {nomes.join(", ")}.
+            {nomes.join(", ")}. Os dados, fontes e regras deste momento serão preservados.
           </DialogDescription>
         </DialogHeader>
         <form

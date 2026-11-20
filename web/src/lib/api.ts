@@ -205,11 +205,27 @@ export type AnaliseSalva = {
   objetivo: string | null;
   empresa: string;
   segmento: string | null;
+  id_categoria: number | null;
+  versao_metodologia: string;
+  capturado_em: string | null;
+  snapshot_disponivel: boolean;
+  snapshot?: SnapshotAnalise | null;
   qtd_regioes: number;
   qtd_relatorios: number;
   ultimo_relatorio: string | null;
   regioes: { id_regiao: number; nome: string }[];
   relatorios: { id_relatorio: number; data_geracao: string; formato: string }[];
+};
+
+export type SnapshotAnalise = {
+  schema_version: number;
+  methodology_version: string;
+  captured_at: string;
+  selection: { segmento: Segmento; regioes: number[] };
+  indicadores: RespostaIndicadores;
+  oferta: RespostaOferta;
+  comparacao: RespostaComparacao;
+  analise: RespostaAnalise;
 };
 
 export type Status = {

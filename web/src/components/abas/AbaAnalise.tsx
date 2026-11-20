@@ -1,6 +1,6 @@
 // HU-009: comparação da oferta observada com a referência municipal.
 // Regras, qualidade e fontes ficam visíveis; o resultado nunca é recomendação.
-import { useAnalise } from "@/hooks/dados";
+import { useAnalise, useSnapshotDaSelecao } from "@/hooks/dados";
 import type { Classificacao } from "@/lib/api";
 import { num } from "@/lib/formato";
 import { useSelecao } from "@/lib/selecao";
@@ -20,6 +20,7 @@ const SELO: Record<Classificacao, string> = {
 export function AbaAnalise() {
   const { segmento, regioes } = useSelecao();
   const q = useAnalise(segmento, regioes);
+  const salva = useSnapshotDaSelecao(segmento, regioes);
 
   const falta = [segmento == null && "um segmento", regioes.length < 2 && `${regioes.length ? "mais um bairro" : "ao menos dois bairros"}`].filter(Boolean);
   if (falta.length)
@@ -28,9 +29,10 @@ export function AbaAnalise() {
         Falta escolher {falta.join(" e ")}.
       </Vazio>
     );
-  if (q.isLoading) return <Carregando />;
-  if (q.isError) return <Vazio titulo="Não deu para calcular a análise">{(q.error as Error).message}</Vazio>;
-  const d = q.data!;
+  if (salva.id && salva.isLoading) return <Carregando />;
+  if (q.isLoading && !salva.snapshot) return <Carregando />;
+  if (q.isError && !salva.snapshot) return <Vazio titulo="Não deu para calcular a análise">{(q.error as Error).message}</Vazio>;
+  const d = salva.snapshot?.analise ?? q.data!;
   const [naoRecomendacao, ...outros] = d.avisos;
 
   return (

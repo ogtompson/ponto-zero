@@ -35,7 +35,7 @@ export function PainelResultados() {
     segs.data?.find((s) => s.id_categoria === segmento)?.nome === salva.segmento;
 
   const nada = segmento == null && regioes.length === 0;
-  const podeSalvar = regioes.length >= 1 && segmento != null;
+  const podeSalvar = regioes.length >= 2 && segmento != null;
 
   return (
     <Tabs value={aba} onValueChange={setAba} className="flex h-full flex-col">
@@ -71,13 +71,20 @@ export function PainelResultados() {
                 </span>
               </TooltipTrigger>
               <TooltipContent>
-                {podeSalvar ? (sessao.data ? "Guardar esta análise na sua empresa" : "Entre na sua conta para salvar") : "Escolha um segmento e ao menos um bairro"}
+                {podeSalvar ? (sessao.data ? "Preservar os dados e regras desta análise" : "Entre na sua conta para salvar") : "Escolha um segmento e ao menos dois bairros"}
               </TooltipContent>
             </Tooltip>
           )}
           <MenuExportar idAnalise={mesmaSelecao ? salva!.id_analise : undefined} />
         </div>
       </div>
+      {mesmaSelecao && (
+        <div className="border-b border-nevoa bg-ouro-claro/45 px-4 py-1.5 text-[12.5px] text-marinho" role="status">
+          {salva!.snapshot_disponivel
+            ? `Você está vendo o snapshot preservado de “${salva!.nome}” (${salva!.versao_metodologia}).`
+            : `“${salva!.nome}” é uma análise legada sem snapshot; os resultados usam os dados atuais.`}
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto bg-papel">
         {nada ? (
           <div className="flex h-full items-center">

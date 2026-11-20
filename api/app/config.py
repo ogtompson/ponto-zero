@@ -23,6 +23,8 @@ class Config:
 
 config = Config()
 
+METODOLOGIA_VERSAO = "2026.11.1"
+
 AVISO_APROXIMACAO = (
     "População, renda e número de estabelecimentos são aproximações e, sozinhos, "
     "não demonstram demanda não atendida."

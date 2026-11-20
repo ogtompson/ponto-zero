@@ -35,6 +35,10 @@ erDiagram
         varchar nome
         date data_criacao
         text objetivo
+        int id_categoria FK
+        varchar versao_metodologia
+        timestamptz capturado_em
+        jsonb snapshot
         int id_empresa FK
     }
     REGIAO_ANALISE {
@@ -78,6 +82,7 @@ erDiagram
     }
     EMPRESA ||--o{ USUARIO : possui
     EMPRESA ||--o{ ANALISE : realiza
+    CATEGORIA ||--o{ ANALISE : contextualiza
     ANALISE ||--|{ REGIAO_ANALISE : inclui
     REGIAO ||--o{ REGIAO_ANALISE : ""
     ANALISE ||--o{ RELATORIO : gera
@@ -92,7 +97,8 @@ erDiagram
 |---|---|---|
 | EMPRESA possui USUARIO | (0,n) : (1,1) | `usuario.id_empresa NOT NULL`, `ON DELETE RESTRICT` |
 | EMPRESA realiza ANALISE | (0,n) : (1,1) | `analise.id_empresa NOT NULL`, `ON DELETE RESTRICT` |
-| ANALISE inclui REGIAO | (1,n) : (0,n) | tabela associativa `regiao_analise` com chave primária composta; a API exige ao menos uma região ao salvar |
+| CATEGORIA identifica o segmento da ANALISE | (0,n) : (0,1) | novas análises gravam `id_categoria`; `NULL` identifica registros legados |
+| ANALISE inclui REGIAO | (1,n) : (0,n) | tabela associativa `regiao_analise` com chave primária composta; a API exige ao menos duas regiões ao salvar |
 | ANALISE gera RELATORIO | (0,n) : (1,1) | `relatorio.id_analise NOT NULL`, `ON DELETE CASCADE` |
 | REGIAO possui INDICADOR | (0,n) : (1,1) | `indicador.id_regiao NOT NULL`, `ON DELETE CASCADE` |
 | REGIAO possui ESTABELECIMENTO | (0,n) : (1,1) | `estabelecimento.id_regiao NOT NULL` |
@@ -113,6 +119,7 @@ erDiagram
 | Indicador sempre com fonte (HU-007) | `fonte NOT NULL` + `CHECK` de texto não vazio |
 | Um valor por região, tipo e data | `UNIQUE NULLS NOT DISTINCT (id_regiao, tipo, data_referencia)` |
 | Análise não pode ter data no futuro | trigger `trg_analise_data` |
+| Snapshot publicado não pode ser reescrito | trigger `trg_analise_snapshot_imutavel` protege dados, segmento, captura e versão |
 | Formato do relatório só PDF ou CSV | `CHECK` |
 
 ## Views

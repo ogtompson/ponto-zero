@@ -1,4 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
   api,
@@ -97,6 +98,23 @@ export const useAnalisesSalvas = (ativo: boolean) =>
     queryFn: () => api.get<AnaliseSalva[]>("/analises"),
     enabled: ativo,
   });
+
+export function useSnapshotDaSelecao(segmento: number | null, regioes: number[]) {
+  const [params] = useSearchParams();
+  const id = params.get("analise") ? Number(params.get("analise")) : null;
+  const query = useQuery({
+    queryKey: ["analise-salva", id],
+    queryFn: () => api.get<AnaliseSalva>(`/analises/${id}`),
+    enabled: id != null && !Number.isNaN(id),
+  });
+  const snapshot = query.data?.snapshot;
+  const mesmaSelecao =
+    snapshot &&
+    snapshot.selection.segmento.id_categoria === segmento &&
+    snapshot.selection.regioes.length === regioes.length &&
+    snapshot.selection.regioes.every((r) => regioes.includes(r));
+  return { ...query, snapshot: mesmaSelecao ? snapshot : null, id };
+}
 
 export function useSair() {
   const qc = useQueryClient();
