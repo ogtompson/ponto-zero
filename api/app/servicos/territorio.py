@@ -19,6 +19,8 @@ from ..config import (
     config,
 )
 from ..db import consulta, consulta_um
+from .diagnostico import montar_diagnostico
+from .perfis_segmento import perfil_por_nome
 
 MAX_REGIOES = 8  # HU-008: limite definido pela equipe para manter a comparação legível
 
@@ -66,7 +68,15 @@ def listar_segmentos() -> list[dict]:
     for linha in linhas:
         linha["descricao"] = descricoes.get(linha["id_categoria"])
         linha["por_10k_hab"] = float(linha["por_10k_hab"] or 0)
+        _aplicar_perfil(linha)
     return sorted(linhas, key=lambda r: chave_ordem(r["nome"]))
+
+
+def _aplicar_perfil(segmento: dict) -> dict:
+    perfil = perfil_por_nome(segmento["nome"])
+    for campo in ("slug", "maturidade", "disponibilidade", "direcionadores", "area_influencia"):
+        segmento[campo] = perfil[campo]
+    return segmento
 
 
 def segmento_valido(id_categoria: int | None, obrigatorio: bool = True) -> dict | None:
@@ -84,7 +94,7 @@ def segmento_valido(id_categoria: int | None, obrigatorio: bool = True) -> dict 
     if not seg or seg["total_estabelecimentos"] == 0:
         raise erro(422, "Este segmento não tem dados disponíveis no piloto.", "segmento")
     seg["por_10k_hab"] = float(seg["por_10k_hab"])
-    return seg
+    return _aplicar_perfil(seg)
 
 
 def listar_regioes() -> list[dict]:
@@ -436,6 +446,28 @@ def analise(id_categoria: int | None, ids: list[int]) -> dict:
         # RN03 / RN04
         "avisos": [AVISO_NAO_RECOMENDACAO, AVISO_APROXIMACAO, AVISO_OFERTA],
     }
+
+
+def diagnostico(id_categoria: int | None, ids: list[int]) -> dict:
+    """Diagnóstico multidimensional; não substitui a rota legada de análise."""
+    seg = segmento_valido(id_categoria)
+    regioes = regioes_validas(ids, 1, "Selecione ao menos uma região para ver o diagnóstico")
+    indicadores_universo = consulta(
+        """
+        SELECT id_regiao, tipo, valor, data_referencia, fonte
+        FROM vw_indicador_completo
+        WHERE fonte IS NOT NULL
+        """
+    )
+    ofertas_universo = consulta(
+        """
+        SELECT id_regiao, quantidade, populacao, por_10k_hab
+        FROM vw_oferta_regiao
+        WHERE id_categoria = %s
+        """,
+        (seg["id_categoria"],),
+    )
+    return montar_diagnostico(seg, regioes, indicadores_universo, ofertas_universo, metadados_oferta())
 
 
 def _br(numero: float, casas: int) -> str:
