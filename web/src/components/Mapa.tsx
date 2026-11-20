@@ -62,6 +62,7 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
   const mapa = useMapa();
   const { regioes, alternarRegiao, cor } = useSelecao();
   const camada = useRef<L.GeoJSON | null>(null);
+  const mascara = useRef<L.Polygon | null>(null);
   const pinos = useRef<L.LayerGroup | null>(null);
   const primeiraVez = useRef(true);
 
@@ -85,6 +86,23 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
     });
     g.addTo(map);
     camada.current = g;
+    const mundo: L.LatLngExpression[] = [[-85, -180], [-85, 180], [85, 180], [85, -180]];
+    const bairros: L.LatLngExpression[][] = [];
+    for (const feature of mapa.data.features) {
+      const geometria = feature.geometry;
+      if (geometria.type === "Polygon") bairros.push(geometria.coordinates[0].map(([lng, lat]) => [lat, lng]));
+      if (geometria.type === "MultiPolygon") {
+        geometria.coordinates.forEach((poligono) => bairros.push(poligono[0].map(([lng, lat]) => [lat, lng])));
+      }
+    }
+    mascara.current = L.polygon([mundo, ...bairros], {
+      pane: "mascara",
+      stroke: false,
+      fillColor: "#f5f6fa",
+      fillOpacity: 1,
+      fillRule: "evenodd",
+      interactive: false,
+    }).addTo(map);
     pinos.current = L.layerGroup().addTo(map);
     map.fitBounds(g.getBounds(), { padding: [8, 8] });
     map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
@@ -226,6 +244,7 @@ export function Mapa() {
             pane="rotulos"
           />
         </Pane>
+        <Pane name="mascara" style={{ zIndex: 460, pointerEvents: "none" }} />
         <Pane name="estabelecimentos" style={{ zIndex: 620 }} />
         <Pane name="pinos" style={{ zIndex: 660, pointerEvents: "none" }} />
         <CamadaBairros legenda={legenda} />
