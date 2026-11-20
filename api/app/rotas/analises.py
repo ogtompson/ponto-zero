@@ -13,6 +13,7 @@ from ..servicos.territorio import (
     analise as calcular_analise,
     chave_ordem,
     comparacao,
+    diagnostico,
     erro,
     indicadores,
     oferta,
@@ -91,7 +92,7 @@ def criar(dados: NovaAnalise, usuario: dict = Depends(usuario_obrigatorio)):
     segmento = segmento_valido(dados.segmento)
     capturado_em = datetime.now(config.fuso)
     snapshot = {
-        "schema_version": 1,
+        "schema_version": 2,
         "methodology_version": METODOLOGIA_VERSAO,
         "captured_at": capturado_em.isoformat(),
         "selection": {"segmento": segmento, "regioes": ids},
@@ -99,6 +100,7 @@ def criar(dados: NovaAnalise, usuario: dict = Depends(usuario_obrigatorio)):
         "oferta": oferta(segmento["id_categoria"], ids),
         "comparacao": comparacao(segmento["id_categoria"], ids),
         "analise": calcular_analise(segmento["id_categoria"], ids),
+        "diagnostico": diagnostico(segmento["id_categoria"], ids),
     }
 
     with conexao() as conn:
