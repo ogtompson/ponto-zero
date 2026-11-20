@@ -12,15 +12,15 @@
 
 ![Oferta observada e referência municipal](docs/img/analise.png)
 
-## Rodar em um comando
+## Rodar localmente em um comando
 
 Com o Docker Desktop aberto, na pasta do projeto:
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-Abra **http://localhost:8080**. Na primeira vez o Docker baixa as três imagens do Docker Hub e o banco é criado com os dados reais (leva uns 30 segundos).
+Abra **http://localhost:8080**. O override local é carregado automaticamente e constrói as imagens usando o código deste repositório. Depois de alterar o código, execute o mesmo comando novamente.
 
 | Para | Comando |
 |---|---|
@@ -28,7 +28,8 @@ Abra **http://localhost:8080**. Na primeira vez o Docker baixa as três imagens 
 | Ver os logs | `docker compose logs -f` |
 | Desligar (os dados ficam) | `docker compose down` |
 | Desligar e apagar os dados | `docker compose down -v` |
-| Construir a partir do código | `docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build` |
+| Atualizar com o código local | `docker compose up -d --build` |
+| Usar somente imagens publicadas | `docker compose -f docker-compose.yml up -d` |
 
 Conta de demonstração: `demo@pontozero.app`, senha `pontozero2026`. Explorar o mapa não exige conta.
 

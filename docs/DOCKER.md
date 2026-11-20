@@ -74,12 +74,14 @@ O [`docker-compose.yml`](../docker-compose.yml) descreve os três serviços pers
 - Todos os valores têm padrão (`${VAR:-padrão}`), então não precisa de `.env`.
 
 ```bash
-docker compose up -d          # liga
+docker compose up -d --build  # constrói o código local e liga
 docker compose ps             # STATUS deve mostrar (healthy)
 docker compose logs -f api    # acompanha a API
 docker compose restart api    # religa só a API; o site continua respondendo depois
 docker compose down           # desliga
 ```
+
+O `docker-compose.override.yml` é carregado automaticamente e adiciona o build local de banco, API e web. Para ignorá-lo e testar somente as imagens publicadas, rode `docker compose -f docker-compose.yml up -d`.
 
 ## 6. Publicar no Docker Hub
 
