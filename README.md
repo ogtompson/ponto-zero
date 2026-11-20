@@ -3,14 +3,14 @@
 </p>
 
 <p align="center">
-  Compare bairros do Recife e investigue como a oferta observada do seu segmento se relaciona com a referência municipal.
+  Compare bairros do Recife e investigue como a oferta formal do seu segmento se relaciona com a referência municipal.
 </p>
 
 <p align="center">
   Projeto final de <b>Infraestrutura de Software</b> e <b>Banco de Dados</b>, CESAR School, 2026.2
 </p>
 
-![Oferta observada e referência municipal](docs/img/analise.png)
+![Oferta formal e referência municipal](docs/img/analise.png)
 
 ## Rodar localmente em um comando
 
@@ -97,9 +97,9 @@ erDiagram
 | Limites e área dos 94 bairros | Prefeitura do Recife, Portal de Dados Abertos | não informada pela fonte |
 | População e domicílios por bairro | IBGE, Censo Demográfico 2022 (SIDRA 9923 e 9922) | 31/07/2022 |
 | Renda média domiciliar por bairro | IBGE, Censo Demográfico 2010 (SIDRA 3345) | 31/07/2010 |
-| 532 estabelecimentos de 6 segmentos | OpenStreetMap, licença ODbL | extração de 17/11/2026 |
+| 7.581 empresas formais ativas de 6 segmentos | Prefeitura do Recife, Empresas Ativas do Recife, licença ODbL | atualização de 03/11/2026 |
 
-A cobertura do OpenStreetMap é parcial, e a tela avisa isso. Os dados brutos coletados estão em `tools/dados/`; para regenerar a carga do banco, rode `pip install shapely bcrypt` e depois [`python tools/gerar_carga.py`](tools/gerar_carga.py).
+A oferta é filtrada por CNAE e deduplicada por CNPJ e categoria. A edição atual da fonte municipal não possui coordenadas com precisão suficiente; por isso o mapa agrega empresas por bairro cadastral e não inventa marcadores. Para atualizar a base, instale [`tools/requirements.txt`](tools/requirements.txt), rode [`python tools/coletar_empresas_recife.py`](tools/coletar_empresas_recife.py) e depois [`python tools/gerar_carga.py`](tools/gerar_carga.py).
 
 ## Desenvolvimento sem Docker
 
@@ -107,7 +107,7 @@ A cobertura do OpenStreetMap é parcial, e a tela avisa isso. Os dados brutos co
 # banco: qualquer Postgres 16 com os scripts de db/init
 cd api && pip install -r requirements-dev.txt
 DATABASE_URL=postgresql://pontozero_app:pontozero_app@localhost:55432/pontozero uvicorn app.main:app --reload
-python -m pytest -q tests          # 14 testes, um por critério das histórias
+python -m pytest -q tests
 
 cd web && npm install && npm run dev   # http://localhost:5173 (repassa /api para :8000)
 ```

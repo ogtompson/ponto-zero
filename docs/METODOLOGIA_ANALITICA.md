@@ -22,7 +22,7 @@ Para cada segmento e região, o produto deve ajudar o usuário a entender:
 
 1. **Demanda potencial:** há uma base residencial compatível com o negócio?
 2. **Adequação do público:** o perfil local se aproxima do público esperado pelo segmento?
-3. **Pressão da oferta:** há muita ou pouca oferta observada em relação ao território?
+3. **Pressão da oferta:** há muita ou pouca oferta formal ativa no recorte CNAE em relação ao território?
 4. **Acesso e centralidade:** clientes e operação conseguem chegar à região?
 5. **Viabilidade territorial:** custos, restrições e características urbanas tornam a hipótese plausível?
 6. **Confiança da leitura:** os dados são recentes, completos e adequados para essa conclusão?
@@ -39,23 +39,23 @@ Nem todas essas perguntas são respondidas pelos dados atuais. A interface deve 
 | Moradores por domicílio | 94 bairros | Censo 2022 | característica domiciliar complementar | pouco discriminante isoladamente |
 | Renda média domiciliar | 94 bairros | Censo 2010 | somente contexto histórico e proxy sinalizado | defasada e inadequada para valores monetários atuais |
 | Área | 94 bairros | Prefeitura do Recife, sem data informada | densidades por km² | bairros não representam áreas comerciais homogêneas |
-| Estabelecimentos | 532 registros, 6 segmentos | OpenStreetMap, extração da carga | oferta observada, concentração e proximidade | cobertura colaborativa parcial; ausência de registro não significa ausência real |
+| Empresas formais ativas | 7.581 registros associados, 6 segmentos | Prefeitura do Recife, atualização de 03/11/2026 | contagem e concentração cadastral por bairro | não inclui informalidade; CNAE de cafeteria é aproximado; coordenadas da edição atual são imprecisas |
 | Limites geográficos | 94 bairros | Prefeitura do Recife | seleção e agregação territorial | efeito de borda e granularidade ampla |
 
-| Segmento | Registros observados |
+| Segmento | CNPJs associados ao bairro |
 |---|---:|
-| Farmácia | 146 |
-| Supermercado | 146 |
-| Padaria | 96 |
-| Cafeteria | 65 |
-| Academia | 52 |
-| Pet shop | 27 |
+| Farmácia | 1.040 |
+| Supermercado | 334 |
+| Padaria | 1.296 |
+| Cafeteria e similares | 3.458 |
+| Academia | 792 |
+| Pet shop | 661 |
 
-Essas quantidades descrevem a base, não o universo real de estabelecimentos.
+Essas quantidades descrevem o universo cadastral municipal dentro dos CNAEs escolhidos, não todo o mercado real. Três farmácias, doze registros do perímetro de cafeteria, dois de academia, um supermercado e nove padarias ficaram sem associação de bairro. O OpenStreetMap não participa dessas contagens.
 
 ### Diagnóstico do estado atual
 
-O sistema calcula concentração de oferta por 10 mil habitantes e compara a oferta observada com uma referência municipal proporcional. Isso é útil como triagem, mas ainda não mede demanda, adequação ao segmento, fluxo, custo, acessibilidade ou viabilidade.
+O sistema calcula concentração de empresas formais por 10 mil habitantes e compara cada bairro com uma referência municipal proporcional do mesmo segmento. Isso é útil como triagem, mas ainda não mede demanda, porte, capacidade, fluxo, custo, acessibilidade ou viabilidade.
 
 ## 4. O que já pode ser calculado com responsabilidade
 
@@ -65,8 +65,8 @@ O sistema calcula concentração de oferta por 10 mil habitantes e compara a ofe
 |---|---|---|
 | Densidade populacional | população ÷ área | concentração residencial |
 | Densidade domiciliar | domicílios ÷ área | concentração de lares |
-| Oferta por 10 mil moradores | estabelecimentos ÷ população × 10.000 | intensidade da oferta observada normalizada por residentes |
-| Oferta por km² | estabelecimentos ÷ área | concentração espacial da oferta observada |
+| Oferta por 10 mil moradores | empresas formais do recorte ÷ população × 10.000 | intensidade cadastral normalizada por residentes |
+| Oferta por km² | empresas formais do recorte ÷ área | concentração cadastral no bairro |
 | Moradores por estabelecimento | população ÷ estabelecimentos | pressão populacional aparente; indisponível quando não há registro confiável |
 | Relação com a referência municipal | oferta local por 10 mil ÷ oferta municipal por 10 mil | distância relativa da média observada da cidade |
 | Massa de renda histórica | domicílios × renda média de 2010 | proxy histórico, nunca poder de compra atual |
@@ -79,7 +79,7 @@ Valores absolutos devem ser acompanhados de posição relativa entre os 94 bairr
 
 Exemplo de linguagem correta:
 
-> A densidade residencial está entre as 20% maiores do Recife. A oferta observada por morador está abaixo da mediana municipal, mas a cobertura parcial da base exige validação em campo.
+> A densidade residencial está entre as 20% maiores do Recife. A oferta formal do recorte por morador está abaixo da mediana municipal; negócios informais, porte e capacidade ainda precisam ser validados.
 
 Exemplo proibido:
 

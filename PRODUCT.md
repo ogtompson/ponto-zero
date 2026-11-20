@@ -50,8 +50,9 @@ O PontoZero combina dados territoriais e empresariais em uma leitura espacial ex
 - População e domicílios do Censo 2022.
 - Limites oficiais dos bairros do Recife.
 - Renda de 2010 atualmente carregada, a ser substituída pelo rendimento de 2022 disponível por setor censitário.
-- 532 pontos do OpenStreetMap, úteis apenas como camada observacional complementar.
-- Base oficial de empresas ativas e inativas do Recife, com CNAE, endereço, datas e coordenadas, identificada e ainda não incorporada ao produto.
+- 7.581 empresas formais ativas, distribuídas nos seis segmentos do piloto e associadas aos bairros oficiais.
+- Base oficial de Empresas Ativas do Recife incorporada com recorte CNAE, deduplicação por CNPJ/categoria, data e qualidade rastreáveis.
+- A edição municipal de novembro de 2026 informa coordenadas com precisão insuficiente; elas não são usadas como pontos. O OpenStreetMap permanece apenas como contexto cartográfico complementar.
 - Implementação atual de diagnóstico multidimensional sem score composto.
 - Não há casos reais validados, depoimentos, taxas de acerto ou resultados de clientes. A interface não deve fabricar essas provas.
 
