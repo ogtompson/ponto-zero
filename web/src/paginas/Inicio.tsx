@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, BarChart3, Building2, Check, MapPinned, Search, Store, UserRound } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { DialogoConta } from "@/components/DialogoConta";
+import { FormularioConta } from "@/components/DialogoConta";
 import { LogoPontoZero, Pino } from "@/components/Marca";
 import { useSegmentos, useSessao } from "@/hooks/dados";
 import { cn } from "@/lib/utils";
@@ -26,22 +26,17 @@ const MOMENTOS: { valor: Momento; texto: string }[] = [
 export function Inicio() {
   const splashVista = typeof window !== "undefined" && sessionStorage.getItem("pontozero:splash-vista") === "1";
   const [etapa, setEtapa] = useState<Etapa>(splashVista ? "apresentacao" : "splash");
-  const [conta, setConta] = useState(false);
-  const [abaConta, setAbaConta] = useState<"entrar" | "criar">("entrar");
   const sessao = useSessao();
 
   useEffect(() => {
     if (etapa !== "splash") return;
+    const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const tempo = window.setTimeout(() => {
       sessionStorage.setItem("pontozero:splash-vista", "1");
       setEtapa("apresentacao");
-    }, 1500);
+    }, reduzido ? 800 : 2300);
     return () => window.clearTimeout(tempo);
   }, [etapa]);
-
-  useEffect(() => {
-    if (etapa === "acesso" && sessao.data && !conta) setEtapa("onboarding");
-  }, [conta, etapa, sessao.data]);
 
   if (etapa === "splash") return <Splash />;
 
@@ -52,13 +47,10 @@ export function Inicio() {
         <Acesso
           nome={sessao.data?.nome}
           aoVoltar={() => setEtapa("apresentacao")}
-          aoEntrar={() => { setAbaConta("entrar"); setConta(true); }}
-          aoCriar={() => { setAbaConta("criar"); setConta(true); }}
           aoContinuar={() => setEtapa("onboarding")}
         />
       )}
       {etapa === "onboarding" && <Onboarding aoVoltar={() => setEtapa("acesso")} />}
-      <DialogoConta key={abaConta} aberto={conta} aoMudar={setConta} abaInicial={abaConta} />
     </div>
   );
 }
@@ -84,12 +76,14 @@ function Apresentacao({ aoContinuar }: { aoContinuar: () => void }) {
       </header>
       <div className="grid flex-1 gap-12 py-12 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:gap-16 lg:py-16">
         <div>
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-ouro-escuro">Antes do endereço, entenda o território</p>
-          <h1 className="larga mt-4 max-w-3xl text-[42px] font-extrabold leading-[1.02] text-marinho sm:text-[58px]">Encontre onde sua análise deve começar.</h1>
+          <h1 className="larga max-w-3xl text-[42px] font-extrabold leading-[1.02] text-marinho sm:text-[58px]">Antes do endereço, entenda onde sua análise deve começar.</h1>
           <p className="mt-6 max-w-2xl text-[17px] leading-relaxed text-tinta-suave sm:text-[19px]">
             O PontoZero reúne dados territoriais e oferta local para ajudar você a investigar possíveis oportunidades de abertura ou expansão em Recife.
           </p>
-          <Button size="lg" className="mt-8 h-12 px-5" onClick={aoContinuar}>Conhecer o PontoZero <ArrowRight /></Button>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button size="lg" className="h-12 px-5" onClick={aoContinuar}>Conhecer o PontoZero <ArrowRight /></Button>
+            <Button asChild size="lg" variant="ghost" className="h-12 px-5"><Link to="/explorar">Ir direto ao mapa</Link></Button>
+          </div>
           <p className="mt-4 max-w-xl text-[12.5px] leading-relaxed text-tinta-fraca">Uma ferramenta de triagem. Não é recomendação de investimento nem substitui estudo de viabilidade.</p>
         </div>
         <Fluxo />
@@ -122,14 +116,22 @@ function Fluxo() {
   );
 }
 
-function Acesso({ nome, aoVoltar, aoEntrar, aoCriar, aoContinuar }: { nome?: string; aoVoltar: () => void; aoEntrar: () => void; aoCriar: () => void; aoContinuar: () => void }) {
+function Acesso({ nome, aoVoltar, aoContinuar }: { nome?: string; aoVoltar: () => void; aoContinuar: () => void }) {
+  const [modo, setModo] = useState<"escolha" | "entrar" | "criar">("escolha");
+  if (modo !== "escolha") {
+    return (
+      <EtapaCentral numero="01 de 03" titulo={modo === "entrar" ? "Entre na sua conta." : "Crie sua conta."} texto="Sua conta preserva análises e relatórios. Você também pode explorar sem cadastro." aoVoltar={() => setModo("escolha")}>
+        <div className="mt-8"><FormularioConta abaInicial={modo} mostrarCabecalho={false} aoConcluir={aoContinuar} /></div>
+      </EtapaCentral>
+    );
+  }
   return (
-    <EtapaCentral numero="01 de 02" titulo="Como você quer continuar?" texto="A conta é opcional. Ela serve para preservar análises e retomar seus estudos depois." aoVoltar={aoVoltar}>
+    <EtapaCentral numero="01 de 03" titulo="Como você quer continuar?" texto="A conta é opcional. Ela serve para preservar análises e retomar seus estudos depois." aoVoltar={aoVoltar}>
       <div className="mt-8 grid gap-3">
         {nome ? <Button size="lg" className="h-12" onClick={aoContinuar}>Continuar como {nome.split(" ")[0]} <ArrowRight /></Button> : (
-          <><Button size="lg" className="h-12" onClick={aoCriar}>Criar minha conta <ArrowRight /></Button><Button size="lg" variant="outline" className="h-12" onClick={aoEntrar}>Já tenho uma conta</Button></>
+          <><Button size="lg" className="h-12" onClick={() => setModo("criar")}>Criar minha conta <ArrowRight /></Button><Button size="lg" variant="outline" className="h-12" onClick={() => setModo("entrar")}>Já tenho uma conta</Button></>
         )}
-        <button onClick={aoContinuar} className="min-h-11 rounded-md px-4 text-sm font-semibold text-tinta-suave underline-offset-4 hover:text-marinho hover:underline">Continuar sem conta</button>
+        {!nome && <button onClick={aoContinuar} className="min-h-11 rounded-md px-4 text-sm font-semibold text-tinta-suave underline-offset-4 hover:text-marinho hover:underline">Continuar sem conta</button>}
       </div>
       <div className="mt-8 border-t border-nevoa pt-6 text-sm text-tinta-suave">
         <p className="font-bold text-marinho">Com uma conta você pode:</p>
@@ -145,21 +147,26 @@ function Acesso({ nome, aoVoltar, aoEntrar, aoCriar, aoContinuar }: { nome?: str
 function Onboarding({ aoVoltar }: { aoVoltar: () => void }) {
   const navegar = useNavigate();
   const segmentos = useSegmentos();
+  const [passo, setPasso] = useState<"objetivo" | "contexto">("objetivo");
   const [objetivo, setObjetivo] = useState<Objetivo | null>(null);
   const [momento, setMomento] = useState<Momento | null>(null);
   const [segmento, setSegmento] = useState("");
+  useEffect(() => {
+    document.getElementById("conteudo-principal")?.scrollTo({ top: 0, behavior: "instant" });
+  }, [passo]);
   function concluir() {
     if (!objetivo || !momento) return;
     localStorage.setItem("pontozero:onboarding", JSON.stringify({ objetivo, momento, segmento: segmento ? Number(segmento) : null }));
     navegar(segmento ? `/explorar?segmento=${segmento}` : "/explorar");
   }
-  return (
-    <EtapaCentral numero="02 de 02" titulo="Conte um pouco sobre seu momento." texto="Usaremos essas respostas para orientar sua primeira análise. Você poderá mudar tudo depois." aoVoltar={aoVoltar} largo>
+  if (passo === "objetivo") {
+    return (
+      <EtapaCentral numero="02 de 03" titulo="O que você pretende fazer?" texto="Escolha a opção que mais se aproxima do seu objetivo agora. Isso não limita as análises que você poderá criar." aoVoltar={aoVoltar} largo>
       <fieldset className="mt-8">
-        <legend className="font-bold text-marinho">O que você pretende fazer?</legend>
+        <legend className="sr-only">Objetivo principal</legend>
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           {OBJETIVOS.map((item) => (
-            <button key={item.valor} type="button" onClick={() => setObjetivo(item.valor)} aria-pressed={objetivo === item.valor} className={cn("min-h-36 rounded-lg border p-4 text-left transition-colors", objetivo === item.valor ? "border-marinho bg-marinho text-white" : "border-nevoa bg-white hover:border-marinho-3") }>
+            <button key={item.valor} type="button" onClick={() => setObjetivo(item.valor)} aria-pressed={objetivo === item.valor} className={cn("min-h-28 rounded-lg border p-4 text-left transition-colors md:min-h-36", objetivo === item.valor ? "border-marinho bg-marinho text-white" : "border-nevoa bg-white hover:border-marinho-3") }>
               <span className={cn("[&_svg]:size-5", objetivo === item.valor ? "text-ouro" : "text-marinho-3")}>{item.icone}</span>
               <span className="mt-4 block font-bold">{item.titulo}</span>
               <span className={cn("mt-1 block text-[13px] leading-relaxed", objetivo === item.valor ? "text-white/70" : "text-tinta-suave")}>{item.texto}</span>
@@ -167,17 +174,27 @@ function Onboarding({ aoVoltar }: { aoVoltar: () => void }) {
           ))}
         </div>
       </fieldset>
-      <div className="mt-7 grid gap-6 md:grid-cols-2">
+        <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Button asChild variant="ghost" size="lg"><Link to="/explorar">Pular personalização</Link></Button>
+          <Button size="lg" className="h-12" disabled={!objetivo} onClick={() => setPasso("contexto")}>Continuar <ArrowRight /></Button>
+        </div>
+      </EtapaCentral>
+    );
+  }
+
+  return (
+    <EtapaCentral numero="03 de 03" titulo="Em que momento você está?" texto="Uma última informação ajuda a preparar seu ponto de partida. O segmento é opcional e pode ser alterado no mapa." aoVoltar={() => setPasso("objetivo")}>
+      <div className="mt-8 grid gap-7">
         <fieldset>
-          <legend className="font-bold text-marinho">Em que momento você está?</legend>
+          <legend className="font-bold text-marinho">Seu momento atual</legend>
           <div className="mt-3 grid gap-2">
             {MOMENTOS.map((item) => (
               <button key={item.valor} type="button" onClick={() => setMomento(item.valor)} aria-pressed={momento === item.valor} className={cn("flex min-h-11 items-center justify-between rounded-md border px-3 text-left text-sm font-semibold", momento === item.valor ? "border-marinho bg-ouro-claro text-marinho" : "border-nevoa bg-white text-tinta-suave hover:border-marinho-3")}>{item.texto}{momento === item.valor && <Check className="size-4" />}</button>
             ))}
           </div>
         </fieldset>
-        <div>
-          <label htmlFor="onboarding-segmento" className="font-bold text-marinho">Qual segmento quer investigar primeiro?</label>
+        <div className="border-t border-nevoa pt-6">
+          <label htmlFor="onboarding-segmento" className="font-bold text-marinho">Segmento para a primeira análise <span className="font-normal text-tinta-fraca">(opcional)</span></label>
           <select id="onboarding-segmento" value={segmento} onChange={(e) => setSegmento(e.target.value)} className="mt-3 h-11 w-full rounded-md border border-input bg-white px-3 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <option value="">Ainda não sei</option>
             {segmentos.data?.map((item) => <option key={item.id_categoria} value={item.id_categoria}>{item.nome}</option>)}
@@ -185,7 +202,7 @@ function Onboarding({ aoVoltar }: { aoVoltar: () => void }) {
           <p className="mt-2 text-xs leading-relaxed text-tinta-fraca">O piloto possui apenas segmentos com dados disponíveis. Essa escolha já prepara o mapa.</p>
         </div>
       </div>
-      <div className="mt-8 flex justify-end"><Button size="lg" className="h-12 w-full sm:w-auto" disabled={!objetivo || !momento} onClick={concluir}>Ir para o mapa <ArrowRight /></Button></div>
+      <div className="mt-8 flex justify-end"><Button size="lg" className="h-12 w-full sm:w-auto" disabled={!momento} onClick={concluir}>Preparar meu mapa <ArrowRight /></Button></div>
     </EtapaCentral>
   );
 }

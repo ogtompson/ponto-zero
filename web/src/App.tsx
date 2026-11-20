@@ -43,7 +43,7 @@ function Estrutura() {
               {!entrada && <Cabecalho />}
               <main id="conteudo-principal" tabIndex={-1} className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden">
                 <Routes>
-                  <Route path="/" element={<div className="flex-1 overflow-y-auto"><Inicio /></div>} />
+                  <Route path="/" element={<Inicio />} />
                   <Route path="/explorar" element={<Explorar />} />
                   <Route path="/analises" element={<div className="flex-1 overflow-y-auto"><MinhasAnalises /></div>} />
                   <Route path="/admin/infraestrutura" element={<div className="flex-1 overflow-y-auto"><Infraestrutura /></div>} />
