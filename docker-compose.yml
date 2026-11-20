@@ -75,7 +75,7 @@ services:
     command:
       - sh
       - -c
-      - psql -v ON_ERROR_STOP=1 -h db -U ${POSTGRES_USER:-pontozero} -d ${POSTGRES_DB:-pontozero} -f /opt/pontozero/migrations/001_snapshot_analises.sql
+      - for f in /opt/pontozero/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -h db -U ${POSTGRES_USER:-pontozero} -d ${POSTGRES_DB:-pontozero} -f "$$f"; done
     depends_on:
       db:
         condition: service_healthy
