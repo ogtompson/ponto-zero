@@ -1,5 +1,7 @@
 # Análise dos dados atuais e metodologia de comparação
 
+> **Registro histórico:** este diagnóstico descreve a carga OSM anterior ao bloco B. A oferta principal do produto passou a usar 7.581 empresas formais ativas da Prefeitura do Recife. Consulte [`METODOLOGIA_ANALITICA.md`](METODOLOGIA_ANALITICA.md) para o inventário vigente.
+
 Este documento responde, com base no banco atual do PontoZero, a quatro questões:
 
 1. quais dados estão realmente disponíveis e qual é sua qualidade;

@@ -1,0 +1,96 @@
+{
+  "metadados": {
+    "titulo": "Empresas Ativas  do Recife",
+    "resource_id": "6d5e72aa-3f4b-4dc3-817c-0e0305cef538",
+    "url": "https://dados.recife.pe.gov.br/pt_PT/dataset/empresas-da-cidade-do-recife/resource/6d5e72aa-3f4b-4dc3-817c-0e0305cef538",
+    "licenca": "Open Data Commons Open Database License (ODbL)",
+    "atualizado_em": "2026-11-03T02:05:02.615697",
+    "tamanho_bytes": 124167791,
+    "frequencia": "mensal",
+    "responsavel": "Secretaria de Finanças do Recife",
+    "coletado_em": "2026-11-20T21:09:19+00:00",
+    "catalogo_segmentos": "2026.11.2",
+    "metodologia": "CNPJ único por categoria; bairro por junção espacial quando há coordenada válida, senão bairro declarado pela fonte.",
+    "observacao": "OpenStreetMap não participa das contagens; permanece apenas como fonte cartográfica complementar."
+  },
+  "segmentos": {
+    "farmacia": {
+      "linhas_fonte": 1283,
+      "linhas_ativas": 1283,
+      "cnpjs_unicos": 1043,
+      "cnpjs_invalidos": 1,
+      "coordenadas_informadas": 728,
+      "coordenadas_precisas": 0,
+      "associados_espacialmente": 0,
+      "associados_por_bairro_declarado": 1040,
+      "divergencias_bairro": 0,
+      "descartados_sem_bairro": 3,
+      "registros_carregados": 1040
+    },
+    "cafeteria": {
+      "linhas_fonte": 3576,
+      "linhas_ativas": 3576,
+      "cnpjs_unicos": 3470,
+      "cnpjs_invalidos": 7,
+      "coordenadas_informadas": 2796,
+      "coordenadas_precisas": 0,
+      "associados_espacialmente": 0,
+      "associados_por_bairro_declarado": 3458,
+      "divergencias_bairro": 0,
+      "descartados_sem_bairro": 12,
+      "registros_carregados": 3458
+    },
+    "academia": {
+      "linhas_fonte": 828,
+      "linhas_ativas": 828,
+      "cnpjs_unicos": 794,
+      "cnpjs_invalidos": 0,
+      "coordenadas_informadas": 662,
+      "coordenadas_precisas": 0,
+      "associados_espacialmente": 0,
+      "associados_por_bairro_declarado": 792,
+      "divergencias_bairro": 0,
+      "descartados_sem_bairro": 2,
+      "registros_carregados": 792
+    },
+    "supermercado": {
+      "linhas_fonte": 365,
+      "linhas_ativas": 365,
+      "cnpjs_unicos": 335,
+      "cnpjs_invalidos": 0,
+      "coordenadas_informadas": 249,
+      "coordenadas_precisas": 0,
+      "associados_espacialmente": 0,
+      "associados_por_bairro_declarado": 334,
+      "divergencias_bairro": 0,
+      "descartados_sem_bairro": 1,
+      "registros_carregados": 334
+    },
+    "padaria": {
+      "linhas_fonte": 1544,
+      "linhas_ativas": 1544,
+      "cnpjs_unicos": 1305,
+      "cnpjs_invalidos": 2,
+      "coordenadas_informadas": 900,
+      "coordenadas_precisas": 0,
+      "associados_espacialmente": 0,
+      "associados_por_bairro_declarado": 1296,
+      "divergencias_bairro": 0,
+      "descartados_sem_bairro": 9,
+      "registros_carregados": 1296
+    },
+    "pet-shop": {
+      "linhas_fonte": 899,
+      "linhas_ativas": 899,
+      "cnpjs_unicos": 661,
+      "cnpjs_invalidos": 0,
+      "coordenadas_informadas": 502,
+      "coordenadas_precisas": 0,
+      "associados_espacialmente": 0,
+      "associados_por_bairro_declarado": 661,
+      "divergencias_bairro": 0,
+      "descartados_sem_bairro": 0,
+      "registros_carregados": 661
+    }
+  }
+}

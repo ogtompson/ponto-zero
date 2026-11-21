@@ -1,0 +1,128 @@
+{
+  "versao": "2026.11.2",
+  "segmentos": [
+    {
+      "slug": "farmacia",
+      "nome": "Farmácia",
+      "maturidade": "especializado",
+      "disponibilidade": "piloto",
+      "direcionadores": ["população residente", "pessoas com 60 anos ou mais", "renda", "oferta formal"],
+      "area_influencia": {"modo": "caminhada", "minutos": 15},
+      "perimetro_oferta": "Farmácias e drogarias, com ou sem manipulação, e comércio de medicamentos veterinários.",
+      "precisao_oferta": "direta",
+      "cnaes_oferta": [
+        {"codigo": "4771-7/01", "descricao": "Comércio varejista de produtos farmacêuticos sem manipulação de fórmulas"},
+        {"codigo": "4771-7/02", "descricao": "Comércio varejista de produtos farmacêuticos com manipulação de fórmulas"},
+        {"codigo": "4771-7/03", "descricao": "Comércio varejista de produtos farmacêuticos homeopáticos"}
+      ]
+    },
+    {
+      "slug": "cafeteria",
+      "nome": "Cafeteria",
+      "maturidade": "configurado",
+      "disponibilidade": "piloto",
+      "direcionadores": ["renda", "polos de trabalho e estudo", "fluxo diurno", "oferta próxima"],
+      "area_influencia": {"modo": "caminhada", "minutos": 10},
+      "perimetro_oferta": "Cafeterias e negócios similares registrados como lanchonetes, casas de chá, de sucos e similares.",
+      "precisao_oferta": "aproximada",
+      "cnaes_oferta": [
+        {"codigo": "5611-2/03", "descricao": "Lanchonetes, casas de chá, de sucos e similares"}
+      ]
+    },
+    {
+      "slug": "academia",
+      "nome": "Academia",
+      "maturidade": "configurado",
+      "disponibilidade": "piloto",
+      "direcionadores": ["densidade residencial", "perfil etário", "renda", "concorrência próxima"],
+      "area_influencia": {"modo": "deslocamento", "minutos": 15},
+      "perimetro_oferta": "Academias e centros de condicionamento físico.",
+      "precisao_oferta": "direta",
+      "cnaes_oferta": [
+        {"codigo": "9313-1/00", "descricao": "Atividades de condicionamento físico"}
+      ]
+    },
+    {
+      "slug": "supermercado",
+      "nome": "Supermercado",
+      "maturidade": "configurado",
+      "disponibilidade": "piloto",
+      "direcionadores": ["domicílios", "renda", "acesso viário", "porte da oferta"],
+      "area_influencia": {"modo": "deslocamento", "minutos": 15},
+      "perimetro_oferta": "Hipermercados e supermercados; minimercados e mercearias não entram neste recorte.",
+      "precisao_oferta": "direta",
+      "cnaes_oferta": [
+        {"codigo": "4711-3/01", "descricao": "Comércio varejista de mercadorias em geral, com predominância de produtos alimentícios - hipermercados"},
+        {"codigo": "4711-3/02", "descricao": "Comércio varejista de mercadorias em geral, com predominância de produtos alimentícios - supermercados"}
+      ]
+    },
+    {
+      "slug": "padaria",
+      "nome": "Padaria",
+      "maturidade": "configurado",
+      "disponibilidade": "piloto",
+      "direcionadores": ["domicílios", "densidade residencial", "renda", "oferta de conveniência"],
+      "area_influencia": {"modo": "caminhada", "minutos": 10},
+      "perimetro_oferta": "Padarias e confeitarias com produção própria predominante ou revenda predominante.",
+      "precisao_oferta": "direta",
+      "cnaes_oferta": [
+        {"codigo": "1091-1/02", "descricao": "Fabricação de produtos de padaria e confeitaria com predominância de produção própria"},
+        {"codigo": "4721-1/02", "descricao": "Padaria e confeitaria com predominância de revenda"}
+      ]
+    },
+    {
+      "slug": "pet-shop",
+      "nome": "Pet shop",
+      "maturidade": "configurado",
+      "disponibilidade": "piloto",
+      "direcionadores": ["domicílios", "renda", "serviços complementares", "oferta próxima"],
+      "area_influencia": {"modo": "deslocamento", "minutos": 15},
+      "perimetro_oferta": "Comércio de animais e artigos para pets, além de higiene e embelezamento de animais domésticos.",
+      "precisao_oferta": "direta",
+      "cnaes_oferta": [
+        {"codigo": "4789-0/04", "descricao": "Comércio varejista de animais vivos e de artigos e alimentos para animais de estimação"},
+        {"codigo": "9609-2/08", "descricao": "Higiene e embelezamento de animais domésticos"}
+      ]
+    },
+    {
+      "slug": "restaurante",
+      "nome": "Restaurante e lanchonete",
+      "maturidade": "geral",
+      "disponibilidade": "preparacao",
+      "direcionadores": ["fluxo por período", "trabalho e estudo", "renda", "oferta por ocasião"],
+      "area_influencia": {"modo": "caminhada", "minutos": 15}
+    },
+    {
+      "slug": "beleza",
+      "nome": "Salão de beleza e barbearia",
+      "maturidade": "geral",
+      "disponibilidade": "preparacao",
+      "direcionadores": ["população residente", "perfil do público", "renda", "recorrência"],
+      "area_influencia": {"modo": "deslocamento", "minutos": 15}
+    },
+    {
+      "slug": "clinica",
+      "nome": "Clínica e consultório",
+      "maturidade": "geral",
+      "disponibilidade": "preparacao",
+      "direcionadores": ["perfil etário", "renda", "acessibilidade", "polos de saúde"],
+      "area_influencia": {"modo": "deslocamento", "minutos": 20}
+    },
+    {
+      "slug": "educacao",
+      "nome": "Escola e curso",
+      "maturidade": "geral",
+      "disponibilidade": "preparacao",
+      "direcionadores": ["faixa etária", "domicílios", "renda", "acessibilidade"],
+      "area_influencia": {"modo": "deslocamento", "minutos": 20}
+    },
+    {
+      "slug": "moda",
+      "nome": "Roupas e calçados",
+      "maturidade": "geral",
+      "disponibilidade": "preparacao",
+      "direcionadores": ["renda", "fluxo comercial", "centralidade", "oferta complementar"],
+      "area_influencia": {"modo": "deslocamento", "minutos": 20}
+    }
+  ]
+}

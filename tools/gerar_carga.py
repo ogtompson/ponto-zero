@@ -6,8 +6,8 @@ Entrada: um JSON com os dados brutos coletados (ver docs/dados.md):
   - IBGE / SIDRA  tabela 9922 (domicilios 2022 por bairro)
   - IBGE / SIDRA  tabela 3345 (renda media domiciliar 2010 por bairro)
   - Prefeitura do Recife (dados.recife.pe.gov.br): limites oficiais dos bairros (GeoJSON)
-  - OpenStreetMap via Overpass API: farmacias, supermercados, padarias, cafeterias,
-    academias e pet shops dentro do Recife
+  - Prefeitura do Recife: empresas ativas filtradas por CNAE, deduplicadas por
+    CNPJ e categoria por tools/coletar_empresas_recife.py
 
 Saidas:
   - db/init/04_carga_dados.sql           -> INSERTs nas tabelas do modelo
@@ -26,13 +26,14 @@ import unicodedata
 from datetime import date
 from pathlib import Path
 
-import bcrypt
-from shapely.geometry import Point, mapping, shape
-from shapely.strtree import STRtree
+from shapely.geometry import mapping, shape
 
 RAIZ = Path(__file__).resolve().parents[1]
 SAIDA_SQL = RAIZ / "db" / "init" / "04_carga_dados.sql"
+SAIDA_MIGRACAO_OFERTA = RAIZ / "db" / "migrations" / "002_oferta_oficial_recife.sql"
 SAIDA_GEO = RAIZ / "api" / "app" / "data" / "bairros-recife.geojson"
+CATALOGO_SEGMENTOS = RAIZ / "api" / "app" / "data" / "catalogo-segmentos.json"
+OFERTA_OFICIAL = RAIZ / "tools" / "dados" / "empresas-recife-segmentos.json"
 
 # Datas de referencia oficiais de cada pesquisa
 DATA_CENSO_2022 = "2022-07-31"
@@ -42,17 +43,7 @@ FONTE_POP = "IBGE, Censo Demográfico 2022 (SIDRA 9923)"
 FONTE_DOM = "IBGE, Censo Demográfico 2022 (SIDRA 9922)"
 FONTE_RENDA = "IBGE, Censo Demográfico 2010 (SIDRA 3345)"
 FONTE_AREA = "Prefeitura do Recife, Portal de Dados Abertos"
-
-# Categorias do piloto -> como reconhecer no OpenStreetMap
-CATEGORIAS = [
-    ("Farmácia", "Farmácias e drogarias", lambda t: t.get("amenity") == "pharmacy"),
-    ("Supermercado", "Supermercados e mercados de bairro de porte médio", lambda t: t.get("shop") == "supermarket"),
-    ("Padaria", "Padarias e confeitarias de bairro", lambda t: t.get("shop") == "bakery"),
-    ("Cafeteria", "Cafés e cafeterias", lambda t: t.get("amenity") == "cafe"),
-    ("Academia", "Academias de ginástica e estúdios de treino", lambda t: t.get("leisure") == "fitness_centre"),
-    ("Pet shop", "Lojas de produtos e serviços para animais", lambda t: t.get("shop") == "pet"),
-]
-
+SENHA_DEMO_HASH = "$2b$12$0g8P//8GnkldcBOI0op3gebCSWWYOe8MQnasaHiSAtR./RWATkBla"
 
 def norm(texto: str) -> str:
     texto = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode().lower()
@@ -67,6 +58,10 @@ def sql_txt(valor) -> str:
 
 def main(caminho: str) -> None:
     bruto = json.loads(Path(caminho).read_text(encoding="utf-8"))
+    catalogo = json.loads(CATALOGO_SEGMENTOS.read_text(encoding="utf-8"))
+    perfis_piloto = [p for p in catalogo["segmentos"] if p.get("disponibilidade") == "piloto"]
+    categorias = [(p["nome"], p["perimetro_oferta"]) for p in perfis_piloto]
+    oferta = json.loads(OFERTA_OFICIAL.read_text(encoding="utf-8"))
 
     # ---------------------------------------------------------------- bairros
     feicoes = bruto["bairros_geojson"]["features"]
@@ -111,59 +106,32 @@ def main(caminho: str) -> None:
     if faltando:
         raise SystemExit(f"Bairros sem populacao no IBGE: {faltando}")
 
-    # ------------------------------------------------------- estabelecimentos
-    arvore = STRtree([b["geom"] for b in bairros])
-    estabelecimentos = []
-    ignorados = 0
-    vistos = set()
-    for e in bruto["osm"]["elements"]:
-        tags = e.get("tags", {})
-        lat = e.get("lat") or (e.get("center") or {}).get("lat")
-        lon = e.get("lon") or (e.get("center") or {}).get("lon")
-        if lat is None or lon is None:
-            continue
-        cat = next((nome for nome, _, teste in CATEGORIAS if teste(tags)), None)
-        if cat is None:
-            ignorados += 1
-            continue
-        ponto = Point(lon, lat)
-        idx = None
-        for i in arvore.query(ponto):
-            if bairros[i]["geom"].contains(ponto):
-                idx = i
-                break
-        if idx is None:
-            # ponto na borda: aceita o bairro mais proximo ate ~150 m
-            i = arvore.nearest(ponto)
-            if bairros[i]["geom"].distance(ponto) < 0.0015:
-                idx = i
-        if idx is None:
-            ignorados += 1
-            continue
-        chave_dup = (cat, round(lat, 5), round(lon, 5))
-        if chave_dup in vistos:
-            continue
-        vistos.add(chave_dup)
-        nome = (tags.get("name") or tags.get("brand") or "").strip()
-        if not nome:
-            nome = f"{cat} sem nome no OpenStreetMap"
-        rua = tags.get("addr:street")
-        numero = tags.get("addr:housenumber")
-        endereco = None
-        if rua:
-            endereco = f"{rua}, {numero}" if numero else rua
-        estabelecimentos.append(
-            {
-                "nome": nome[:100],
-                "lat": round(lat, 6),
-                "lon": round(lon, 6),
-                "endereco": endereco[:255] if endereco else None,
-                "bairro": bairros[idx]["nome"],
-                "categoria": cat,
-            }
-        )
+    # A base municipal não possui coordenadas com precisão suficiente na edição
+    # atual. A contagem usa o bairro cadastral; latitude/longitude ficam nulas e
+    # nunca são substituídas por centroides artificiais.
+    estabelecimentos = [
+        {
+            "nome": item["nome"],
+            "lat": item["latitude"],
+            "lon": item["longitude"],
+            "endereco": item["endereco"],
+            "bairro": item["bairro"],
+            "categoria": item["segmento"],
+        }
+        for item in oferta["estabelecimentos"]
+    ]
     estabelecimentos.sort(key=lambda x: (x["categoria"], x["bairro"], x["nome"]))
-    data_osm = bruto["osm"]["osm3s"]["timestamp_osm_base"][:10]
+    data_oferta = oferta["metadados"]["atualizado_em"][:10]
+    valores_estabelecimentos = ",\n".join(
+        f"  ({sql_txt(e['nome'])}, {e['lat'] if e['lat'] is not None else 'NULL'}, {e['lon'] if e['lon'] is not None else 'NULL'}, {sql_txt(e['endereco'])}, {sql_txt(e['bairro'])}, {sql_txt(e['categoria'])})"
+        for e in estabelecimentos
+    )
+    comentario_oferta = (
+        "fonte=Prefeitura do Recife, Empresas Ativas do Recife (ODbL);"
+        f"data_referencia={data_oferta};cobertura=cadastral;total={len(estabelecimentos)};"
+        "geocodificados=0"
+    )
+    valores_categorias = ",\n".join(f"  ({sql_txt(nome)}, {sql_txt(descricao)})" for nome, descricao in categorias)
 
     # ------------------------------------------------------------------- SQL
     linhas: list[str] = []
@@ -171,7 +139,7 @@ def main(caminho: str) -> None:
     w("-- =====================================================================")
     w("-- PontoZero | 04 - Carga inicial de dados (gerado por tools/gerar_carga.py)")
     w(f"-- Gerado em {date.today().isoformat()} a partir de fontes abertas:")
-    w("--   IBGE (Censo 2022 e 2010), Prefeitura do Recife e OpenStreetMap.")
+    w("--   IBGE (Censo 2022 e 2010) e Prefeitura do Recife.")
     w("-- Nao edite a mao: rode o script de novo se os dados mudarem.")
     w("-- =====================================================================")
     w("")
@@ -179,7 +147,7 @@ def main(caminho: str) -> None:
     w("")
     w("-- Segmentos do piloto (CATEGORIA)")
     w("INSERT INTO categoria (nome, descricao) VALUES")
-    w(",\n".join(f"  ({sql_txt(n)}, {sql_txt(d)})" for n, d, _ in CATEGORIAS) + ";")
+    w(",\n".join(f"  ({sql_txt(n)}, {sql_txt(d)})" for n, d in categorias) + ";")
     w("")
     w("-- 94 bairros oficiais do Recife (REGIAO)")
     w("INSERT INTO regiao (nome, tipo, cidade, estado) VALUES")
@@ -206,16 +174,11 @@ def main(caminho: str) -> None:
     w(") AS v(bairro, tipo, valor, data_ref, fonte)")
     w("JOIN regiao r ON r.nome = v.bairro AND r.cidade = 'Recife';")
     w("")
-    w(f"-- Oferta comercial (ESTABELECIMENTO): {len(estabelecimentos)} pontos do OpenStreetMap")
+    w(f"-- Oferta formal (ESTABELECIMENTO): {len(estabelecimentos)} CNPJs ativos associados a bairros")
     w("INSERT INTO estabelecimento (nome, latitude, longitude, endereco, id_regiao, id_categoria)")
-    w("SELECT v.nome, v.lat, v.lon, v.endereco, r.id_regiao, c.id_categoria")
+    w("SELECT v.nome, v.lat::numeric, v.lon::numeric, v.endereco, r.id_regiao, c.id_categoria")
     w("FROM (VALUES")
-    w(
-        ",\n".join(
-            f"  ({sql_txt(e['nome'])}, {e['lat']}, {e['lon']}, {sql_txt(e['endereco'])}, {sql_txt(e['bairro'])}, {sql_txt(e['categoria'])})"
-            for e in estabelecimentos
-        )
-    )
+    w(valores_estabelecimentos)
     w(") AS v(nome, lat, lon, endereco, bairro, categoria)")
     w("JOIN regiao r ON r.nome = v.bairro AND r.cidade = 'Recife'")
     w("JOIN categoria c ON c.nome = v.categoria;")
@@ -223,18 +186,17 @@ def main(caminho: str) -> None:
     w("-- Metadados da camada de oferta (lidos pela API para exibir fonte e data - HU-007)")
     w(
         "COMMENT ON TABLE estabelecimento IS "
-        + sql_txt(f"fonte=OpenStreetMap, contribuidores (licença ODbL);data_referencia={data_osm}")
+        + sql_txt(comentario_oferta)
         + ";"
     )
     w("")
 
     # Conta de demonstracao para a apresentacao (senha documentada no README)
-    senha_demo = bcrypt.hashpw(b"pontozero2026", bcrypt.gensalt(rounds=12)).decode()
     w("-- Empresa e usuario de demonstracao (login: demo@pontozero.app / pontozero2026)")
     w("INSERT INTO empresa (nome, cnpj, segmento) VALUES ('Rede Farma Nordeste (demonstração)', NULL, 'Farmácia');")
     w(
         "INSERT INTO usuario (nome, email, senha, perfil, id_empresa) "
-        f"SELECT 'Demonstração PontoZero', 'demo@pontozero.app', {sql_txt(senha_demo)}, 'admin', id_empresa "
+        f"SELECT 'Demonstração PontoZero', 'demo@pontozero.app', {sql_txt(SENHA_DEMO_HASH)}, 'admin', id_empresa "
         "FROM empresa WHERE nome = 'Rede Farma Nordeste (demonstração)';"
     )
     w("")
@@ -257,6 +219,45 @@ def main(caminho: str) -> None:
     w("COMMIT;")
     SAIDA_SQL.parent.mkdir(parents=True, exist_ok=True)
     SAIDA_SQL.write_text("\n".join(linhas) + "\n", encoding="utf-8")
+
+    # Migração para volumes existentes: preserva contas e análises e substitui
+    # somente a camada de oferta. O marcador impede recarga em todo restart.
+    migracao = [
+        "BEGIN;",
+        "",
+        "CREATE TABLE IF NOT EXISTS schema_migration (",
+        "  versao VARCHAR(100) PRIMARY KEY,",
+        "  aplicada_em TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP",
+        ");",
+        "ALTER TABLE estabelecimento ALTER COLUMN latitude DROP NOT NULL;",
+        "ALTER TABLE estabelecimento ALTER COLUMN longitude DROP NOT NULL;",
+        "",
+        "UPDATE categoria AS c SET descricao = v.descricao",
+        "FROM (VALUES",
+        valores_categorias,
+        ") AS v(nome, descricao)",
+        "WHERE c.nome = v.nome;",
+        "",
+        "DELETE FROM estabelecimento",
+        "WHERE NOT EXISTS (SELECT 1 FROM schema_migration WHERE versao = '002_oferta_oficial_recife');",
+        "",
+        "INSERT INTO estabelecimento (nome, latitude, longitude, endereco, id_regiao, id_categoria)",
+        "SELECT v.nome, v.lat::numeric, v.lon::numeric, v.endereco, r.id_regiao, c.id_categoria",
+        "FROM (VALUES",
+        valores_estabelecimentos,
+        ") AS v(nome, lat, lon, endereco, bairro, categoria)",
+        "JOIN regiao r ON r.nome = v.bairro AND r.cidade = 'Recife'",
+        "JOIN categoria c ON c.nome = v.categoria",
+        "WHERE NOT EXISTS (SELECT 1 FROM schema_migration WHERE versao = '002_oferta_oficial_recife');",
+        "",
+        f"COMMENT ON TABLE estabelecimento IS {sql_txt(comentario_oferta)};",
+        "INSERT INTO schema_migration (versao) VALUES ('002_oferta_oficial_recife') ON CONFLICT DO NOTHING;",
+        "",
+        "COMMIT;",
+        "",
+    ]
+    SAIDA_MIGRACAO_OFERTA.parent.mkdir(parents=True, exist_ok=True)
+    SAIDA_MIGRACAO_OFERTA.write_text("\n".join(migracao), encoding="utf-8")
 
     # ---------------------------------------------------------------- GeoJSON
     saida = {"type": "FeatureCollection", "features": []}
@@ -288,8 +289,8 @@ def main(caminho: str) -> None:
     from collections import Counter
 
     print(f"bairros: {len(bairros)}")
-    print(f"estabelecimentos: {len(estabelecimentos)} (ignorados {ignorados})", Counter(e["categoria"] for e in estabelecimentos))
-    print(f"osm base: {data_osm}")
+    print(f"estabelecimentos formais: {len(estabelecimentos)}", Counter(e["categoria"] for e in estabelecimentos))
+    print(f"base municipal atualizada em: {data_oferta}")
     print(f"sql: {SAIDA_SQL.stat().st_size/1024:.0f} KB | geojson: {SAIDA_GEO.stat().st_size/1024:.0f} KB")
 
 

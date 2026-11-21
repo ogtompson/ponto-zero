@@ -62,7 +62,7 @@ export function PainelControles() {
                   <span className="min-w-0">
                     <span className="block truncate text-[13.5px] font-semibold leading-tight">{s.nome}</span>
                     <span className={cn("block text-[11.5px] leading-tight numeros", ativo ? "text-white/70" : "text-tinta-fraca")}>
-                      {num(s.total_estabelecimentos)} no mapa
+                      {num(s.total_estabelecimentos)} registros formais
                     </span>
                   </span>
                 </button>

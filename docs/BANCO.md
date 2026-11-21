@@ -140,11 +140,11 @@ erDiagram
 ```
 referência proporcional = registros do segmento por 10 mil habitantes no Recife × população da região ÷ 10 mil
 relação                 = registros observados ÷ referência proporcional
-oferta observada baixa quando a referência proporcional ≥ 2 e a relação ≤ 50%
+oferta formal baixa quando a referência proporcional ≥ 2 e a relação ≤ 50%
 não classificada quando falta população ou o segmento não tem base
 ```
 
-A função compara a base observada com a referência municipal. Ela não mede demanda e um resultado zero não comprova ausência de estabelecimentos, pois a cobertura do OpenStreetMap é parcial.
+A função compara as empresas formais ativas do recorte CNAE com a referência municipal. Ela não mede demanda, porte ou capacidade, e um resultado zero não comprova ausência de negócios informais.
 
 ```sql
 SELECT regiao, populacao, encontrados, esperado, classificacao, motivo
@@ -168,7 +168,7 @@ SELECT r.nome, i.valor AS populacao
 FROM regiao r JOIN indicador i ON i.id_regiao = r.id_regiao AND i.tipo = 'populacao'
 ORDER BY i.valor DESC LIMIT 5;
 
--- 2. Quantos estabelecimentos de cada segmento existem no mapa
+-- 2. Quantas empresas formais de cada segmento estão associadas aos bairros
 SELECT c.nome, count(e.id_estabelecimento) AS total
 FROM categoria c LEFT JOIN estabelecimento e ON e.id_categoria = c.id_categoria
 GROUP BY c.nome ORDER BY total DESC;
@@ -209,7 +209,7 @@ INSERT INTO regiao (nome, tipo, cidade, estado) VALUES ('X', 'Bairro', 'Recife',
 | `regiao` | 94 | bairros oficiais da Prefeitura do Recife |
 | `indicador` | 470 | IBGE (Censo 2022 e 2010) e área da Prefeitura |
 | `categoria` | 6 | segmentos do piloto |
-| `estabelecimento` | 532 | OpenStreetMap |
+| `estabelecimento` | 7.581 | Prefeitura do Recife, Empresas Ativas do Recife; CNPJ deduplicado por categoria |
 | `empresa`, `usuario`, `analise`, `regiao_analise`, `relatorio` | 1, 1, 1, 3, 1 | conta de demonstração |
 
 A fonte e a data da camada de oferta ficam registradas no próprio banco, no comentário da tabela: `SELECT obj_description('estabelecimento'::regclass);`

@@ -150,9 +150,9 @@ def montar_diagnostico(
         }
         evidencias_oferta = [
             _evidencia(
-                "oferta_por_10k", "Oferta observada por 10 mil moradores", "estabelecimentos/10 mil hab.",
+                "oferta_por_10k", "Oferta formal por 10 mil moradores", "estabelecimentos/10 mil hab.",
                 linha_10k, universo_oferta, qualidade="aproximada",
-                explica="Compara intensidade da oferta observada com a população residente; não mede capacidade ou qualidade.",
+                explica="Compara a intensidade cadastral da oferta formal com a população residente; não mede capacidade ou qualidade.",
             ),
             _evidencia(
                 "oferta_por_km2", "Concentração física da oferta", "estabelecimentos/km²",
@@ -173,8 +173,11 @@ def montar_diagnostico(
             ),
             _dimensao(
                 "oferta_local", "Pressão da oferta", evidencias_oferta, "aproximada",
-                "Compara duas formas de concentração da oferta observada; valores altos significam maior pressão aparente.",
-                ["A cobertura do OpenStreetMap é parcial; ausência de registro não confirma ausência de concorrentes."],
+                "Compara duas formas de concentração da oferta formal ativa; valores altos significam maior pressão aparente.",
+                [
+                    "A base cadastral não inclui negócios informais nem mede porte, capacidade, qualidade ou faturamento.",
+                    "O recorte depende dos CNAEs definidos para o segmento e pode abranger atividades similares.",
+                ],
             ),
             _dimensao(
                 "acesso_centralidade", "Acesso e centralidade", [], "insuficiente",

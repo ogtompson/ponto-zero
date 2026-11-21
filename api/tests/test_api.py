@@ -98,22 +98,19 @@ def test_oferta_exige_segmento(cliente):
     assert "segmento" in msg(r)
 
 
-def test_oferta_mesma_metrica_e_mensagem_sem_estabelecimento(cliente):
+def test_oferta_usa_base_formal_e_expoe_qualidade(cliente):
     farmacia = id_segmento(cliente, "Farmácia")
     agua_fria, boa_viagem = ids(cliente, "Água Fria", "Boa Viagem")
     r = cliente.get(f"/api/oferta?segmento={farmacia}&regioes={agua_fria},{boa_viagem}").json()
     assert r["metrica"] == "estabelecimentos por 10 mil habitantes"
-    assert r["fonte"].startswith("OpenStreetMap")
-    vazio = next(x for x in r["regioes"] if x["id_regiao"] == agua_fria)
-    assert vazio["quantidade"] == 0
-    assert vazio["mensagem"] == "nenhum estabelecimento observado na base; a cobertura é parcial"
-    assert vazio["status_dado"] == "sem_registro_observado"
-    assert r["qualidade"] == {
-        "cobertura": "parcial",
-        "zero_confirmado": False,
-        "descricao": "Cobertura parcial: ausência de registro não confirma ausência de estabelecimentos.",
-    }
-    assert all(p["id_regiao"] in (agua_fria, boa_viagem) for p in r["estabelecimentos"])
+    assert r["fonte"].startswith("Prefeitura do Recife")
+    assert sum(item["quantidade"] for item in r["regioes"]) > 0
+    assert r["qualidade"]["cobertura"] == "cadastral"
+    assert r["qualidade"]["cnpjs_formais"] == 1043
+    assert r["qualidade"]["registros_associados"] == 1040
+    assert r["qualidade"]["coordenadas_precisas"] == 0
+    assert r["qualidade"]["zero_confirmado"] is False
+    assert r["estabelecimentos"] == []
 
 
 # --------------------------------------------------------------- HU-008
@@ -139,17 +136,18 @@ def test_analise_exige_segmento_e_duas_regioes(cliente):
     assert cliente.get(f"/api/analise?segmento={farmacia}&regioes={pina}").status_code == 422
 
 
-def test_analise_qualifica_oferta_observada_e_mostra_fontes(cliente):
+def test_analise_qualifica_oferta_formal_e_mostra_fontes(cliente):
     farmacia = id_segmento(cliente, "Farmácia")
     agua_fria, boa_viagem = ids(cliente, "Água Fria", "Boa Viagem")
     r = cliente.get(f"/api/analise?segmento={farmacia}&regioes={agua_fria},{boa_viagem}").json()
-    assert r["qualidade_oferta"]["cobertura"] == "parcial"
+    assert r["qualidade_oferta"]["cobertura"] == "cadastral"
+    assert r["qualidade_oferta"]["registros_associados"] == 1040
     assert all(x["classificacao"] in {"oferta_observada_baixa", "oferta_observada_compativel", "nao_classificada"} for x in r["resultados"])
     assert all(x["zero_confirmado"] is False for x in r["resultados"])
     res = {x["id_regiao"]: x for x in r["resultados"]}
-    assert res[agua_fria]["rotulo"] == "Oferta observada abaixo da referência"
-    assert res[agua_fria]["status_dado"] == "sem_registro_observado"
-    assert res[boa_viagem]["classificacao"] == "oferta_observada_compativel"
+    assert res[agua_fria]["encontrados"] > 0
+    assert res[agua_fria]["status_dado"] == "observado"
+    assert res[boa_viagem]["encontrados"] > res[agua_fria]["encontrados"]
     assert any("não é recomendação" in a for a in r["avisos"])
     assert len(r["fontes"]) == 2 and len(r["criterios"]) == 5
 

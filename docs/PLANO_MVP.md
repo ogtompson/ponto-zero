@@ -70,13 +70,15 @@ O professor deve conseguir reconhecer três qualidades:
 
 **Pronto quando:** o trabalho atual está recuperável e cada mudança seguinte pode ser revertida de forma independente.
 
-### Bloco B — corrigir a evidência principal
+### Bloco B — corrigir a evidência principal — concluído em 20/11/2026
+
+**Resultado:** 7.581 CNPJs ativos associados aos bairros em seis recortes de segmento, com catálogo CNAE versionado, deduplicação, relatório de qualidade, snapshot reproduzível e migração que preserva contas e análises existentes. A base municipal não possui coordenadas precisas na edição atual; por isso ela alimenta contagens por bairro, enquanto o OSM não participa dos totais.
 
 1. Baixar e versionar metadados da base oficial de empresas ativas do Recife.
 2. Criar configuração declarativa de CNAEs para os 6 segmentos atuais.
 3. Deduplicar por CNPJ e categoria; uma empresa com várias atividades não pode inflar a contagem.
 4. Validar coordenadas, bairro, situação cadastral e data de abertura.
-5. Associar os pontos aos polígonos oficiais e registrar divergências.
+5. Associar espacialmente quando houver coordenada precisa; caso contrário, usar o bairro cadastral sem fabricar ponto.
 6. Manter os registros OSM em camada separada, identificados como complementares.
 7. Expor contagens de qualidade: total oficial, coordenadas válidas, registros associados e descartados.
 
