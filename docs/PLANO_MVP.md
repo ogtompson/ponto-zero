@@ -2,7 +2,7 @@
 
 **Revisão:** 23 de novembro de 2026
 
-**Marco imediato:** apresentação ao professor em 21 de novembro de 2026
+**Marco atual:** estabilização e ensaio para a apresentação final
 
 ## 1. Resultado esperado
 
@@ -73,7 +73,7 @@ O mapa continua sendo uma superfície cartográfica alimentada pelos dados do Po
 - pipeline contínuo de atualização das fontes;
 - relatórios analíticos completos e cenários com dados do próprio cliente.
 
-## 3. Recorte de entrega para amanhã
+## 3. Recorte de entrega para a apresentação final
 
 ### Bloco A — proteger a linha de base
 
@@ -118,10 +118,12 @@ O mapa continua sendo uma superfície cartográfica alimentada pelos dados do Po
 
 ### Bloco C1 — estabilizar a experiência cartográfica
 
-1. Remover imediatamente a legenda de estabelecimentos quando não houver pontos georreferenciados.
-2. Manter contagem absoluta e taxa por 10 mil moradores nos bairros, com fonte e granularidade explícitas.
-3. Criar uma escala cartográfica por indicador, com contraste acessível e menos predominância do azul.
-4. Retirar CESAR School e demais textos de bastidor da interface pública.
+**Estado em 23/11:** correções de coerência implementadas na HU016; validação visual pelo responsável ainda pendente. A decisão provisória de arquitetura está registrada em [`DECISAO_CARTOGRAFIA.md`](DECISAO_CARTOGRAFIA.md).
+
+1. [x] Remover imediatamente a legenda de estabelecimentos quando não houver pontos georreferenciados.
+2. [x] Manter contagem absoluta e taxa por 10 mil moradores nos bairros, com fonte e granularidade explícitas.
+3. [x] Criar uma escala cartográfica por indicador, com contraste acessível e menos predominância do azul.
+4. [x] Retirar CESAR School e demais textos de bastidor da interface pública.
 5. Executar um comparativo curto entre a solução atual e Google Maps, usando o mesmo GeoJSON e o mesmo caso de demonstração.
 6. Registrar custo, exigência de chave, franquia, restrições e comportamento sem internet antes de decidir por migração.
 7. Prototipar Folium fora do produto somente se ele acelerar a validação de uma análise ou relatório.
@@ -204,7 +206,7 @@ Uma fonte só entra no produto quando tiver licença, referência temporal, gran
 - [ ] Infraestrutura aparece apenas na área administrativa.
 - [ ] README, interface e metodologia descrevem as mesmas fontes.
 
-## 8. Itens deliberadamente fora do recorte de amanhã
+## 8. Itens deliberadamente fora do recorte da apresentação final
 
 - score de oportunidade;
 - previsão de sucesso ou recomendação automática;
