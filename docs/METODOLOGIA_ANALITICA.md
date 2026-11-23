@@ -258,7 +258,7 @@ A primeira versão do diagnóstico multidimensional está disponível em:
 GET /api/diagnostico?segmento={id}&regioes={id1,id2}
 ```
 
-A resposta usa a metodologia `2026.11.3` e mantém cinco dimensões independentes:
+A resposta usa a metodologia `2026.11.4` e mantém cinco dimensões independentes:
 
 1. demanda residente;
 2. adequação do público;
@@ -268,4 +268,6 @@ A resposta usa a metodologia `2026.11.3` e mantém cinco dimensões independente
 
 Cada evidência inclui valor, unidade, percentil entre os bairros, faixa relativa, fonte, data, qualidade, interpretação e limitações. Dimensões sem dados aparecem como insuficientes. A resposta declara `sem_score: true`, portanto não soma percentis nem produz recomendação automática.
 
-A versão `2026.11.3` acrescenta uma síntese por bairro com leitura curta, até três sinais observados, até três pontos que exigem validação e um próximo passo verificável. Esses textos são derivados das mesmas evidências do diagnóstico. “Oferta baixa” é apresentada como hipótese para investigar, nunca como demanda não atendida; zero cadastral continua significando ausência de registro observado, não ausência confirmada de estabelecimentos.
+A versão `2026.11.3` acrescentou uma síntese por bairro com leitura curta, até três sinais observados, até três pontos que exigem validação e um próximo passo verificável. Esses textos são derivados das mesmas evidências do diagnóstico. “Oferta baixa” é apresentada como hipótese para investigar, nunca como demanda não atendida; zero cadastral continua significando ausência de registro observado, não ausência confirmada de estabelecimentos.
+
+A versão `2026.11.4` acrescenta uma síntese comparativa quando há pelo menos dois bairros selecionados. Ela mostra até três contrastes mensuráveis em população residente, densidade demográfica e oferta formal por 10 mil moradores. O cálculo identifica os extremos somente dentro da seleção, mas conserva o percentil municipal como referência. O resultado não agrega dimensões, não atribui nota e não declara um bairro vencedor.

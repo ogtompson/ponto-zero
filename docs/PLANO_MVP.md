@@ -102,7 +102,7 @@ O mapa continua sendo uma superfície cartográfica alimentada pelos dados do Po
 
 ### Bloco C — transformar análise em decisão
 
-**Estado em 23/11:** primeiro pacote implementado na HU014; testes unitários aprovados e validação integrada pendente do Docker.
+**Estado em 23/11:** sínteses individual e comparativa implementadas na HU014; testes unitários aprovados e validação integrada pendente do Docker.
 
 1. [x] Fazer “Leitura” abrir como resultado principal.
 2. [x] Mostrar, antes das tabelas:
@@ -112,9 +112,9 @@ O mapa continua sendo uma superfície cartográfica alimentada pelos dados do Po
    - confiança e cobertura;
    - próximo passo verificável.
 3. [x] Colocar evidências, fontes e limitações sob demanda após a síntese.
-4. Manter fórmula, fonte e data acessíveis sem repetir longos avisos em todos os cartões.
-5. Trocar linguagem genérica por frases que mencionem segmento, região, valor e referência.
-6. Não publicar ranking geral nem “melhor bairro”.
+4. [x] Manter fórmula, fonte e data acessíveis sem repetir longos avisos em todos os cartões.
+5. [x] Trocar linguagem genérica por frases que mencionem segmento, região, valor e referência.
+6. [x] Não publicar ranking geral nem “melhor bairro”.
 
 **Pronto quando:** alguém consegue explicar a diferença entre dois bairros sem abrir todas as abas nem interpretar sozinho uma tabela.
 
