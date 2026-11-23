@@ -57,6 +57,7 @@ def test_diagnostico_separa_dimensoes_e_nao_cria_score():
 
     assert resposta["sem_score"] is True
     assert "score" not in resposta
+    assert resposta["comparacao"] is None
     dimensoes = {d["id"]: d for d in resposta["regioes"][0]["dimensoes"]}
     assert set(dimensoes) == {
         "demanda_residente", "perfil_publico", "oferta_local", "acesso_centralidade", "confianca_dados"
@@ -88,3 +89,47 @@ def test_diagnostico_preserva_zero_como_valor_observado():
     assert por_10k["disponivel"] is True
     assert oferta["limitacoes"]
     assert any("não comprova demanda" in texto for texto in resposta["regioes"][0]["sintese"]["atencoes"])
+
+
+def test_diagnostico_resume_contrastes_sem_criar_ranking():
+    resposta = montar_diagnostico(
+        _segmento(),
+        [{"id_regiao": 1, "nome": "Bairro A"}, {"id_regiao": 3, "nome": "Bairro C"}],
+        _indicadores(),
+        [
+            {"id_regiao": 1, "quantidade": 1, "por_10k_hab": 5},
+            {"id_regiao": 2, "quantidade": 2, "por_10k_hab": 10},
+            {"id_regiao": 3, "quantidade": 6, "por_10k_hab": 20},
+        ],
+        {"fonte": "Fonte oficial", "data_referencia": "2026-11-17", "cobertura": "cadastral"},
+    )
+
+    comparacao = resposta["comparacao"]
+    assert comparacao is not None
+    assert 1 <= len(comparacao["contrastes"]) <= 3
+    populacao = next(item for item in comparacao["contrastes"] if item["indicador"] == "populacao")
+    assert populacao["maior"]["nome"] == "Bairro C"
+    assert populacao["menor"]["nome"] == "Bairro A"
+    assert "ranking" in comparacao["proximo_passo"]
+    assert "vencedor" in comparacao["proximo_passo"]
+
+
+def test_diagnostico_omite_comparacao_quando_nao_ha_contraste():
+    indicadores = [
+        {**linha, "valor": 1000}
+        if linha["id_regiao"] in (1, 2) and linha["tipo"] in ("populacao", "densidade")
+        else linha
+        for linha in _indicadores()
+    ]
+    resposta = montar_diagnostico(
+        _segmento(),
+        [{"id_regiao": 1, "nome": "Bairro A"}, {"id_regiao": 2, "nome": "Bairro B"}],
+        indicadores,
+        [
+            {"id_regiao": 1, "quantidade": 1, "por_10k_hab": 5},
+            {"id_regiao": 2, "quantidade": 1, "por_10k_hab": 5},
+        ],
+        {"fonte": "Fonte oficial", "data_referencia": "2026-11-17", "cobertura": "cadastral"},
+    )
+
+    assert resposta["comparacao"] is None

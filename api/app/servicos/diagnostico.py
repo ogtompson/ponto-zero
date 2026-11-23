@@ -10,7 +10,13 @@ from collections import defaultdict
 from typing import Iterable
 
 
-VERSAO_METODOLOGIA = "2026.11.3"
+VERSAO_METODOLOGIA = "2026.11.4"
+
+INTERPRETACAO_CONTRASTE = {
+    "populacao": "Diferença de escala da demanda residente; não inclui pessoas que apenas circulam na região.",
+    "densidade": "Diferença de concentração residencial; o desenho e a área do bairro influenciam a medida.",
+    "oferta_por_10k": "Diferença de pressão cadastral da oferta formal; menor intensidade não comprova oportunidade.",
+}
 
 
 def percentil_empirico(valor: float | None, universo: Iterable[float | None]) -> float | None:
@@ -143,6 +149,57 @@ def _sintese_regiao(nome: str, dimensoes: list[dict]) -> dict:
     }
 
 
+def _comparacao_selecionados(resultados: list[dict]) -> dict | None:
+    if len(resultados) < 2:
+        return None
+
+    por_indicador: dict[str, list[dict]] = defaultdict(list)
+    for regiao in resultados:
+        for dimensao in regiao["dimensoes"]:
+            for evidencia in dimensao["evidencias"]:
+                if evidencia["indicador"] not in INTERPRETACAO_CONTRASTE or evidencia["valor"] is None:
+                    continue
+                por_indicador[evidencia["indicador"]].append({
+                    "id_regiao": regiao["id_regiao"],
+                    "nome": regiao["nome"],
+                    "valor": evidencia["valor"],
+                    "percentil": evidencia["percentil"],
+                    "rotulo": evidencia["rotulo"],
+                    "unidade": evidencia["unidade"],
+                })
+
+    contrastes = []
+    for indicador, valores in por_indicador.items():
+        if len(valores) < 2:
+            continue
+        ordenados = sorted(valores, key=lambda item: (item["valor"], item["nome"]))
+        menor, maior = ordenados[0], ordenados[-1]
+        if menor["valor"] == maior["valor"]:
+            continue
+        percentis = [item["percentil"] for item in (menor, maior)]
+        distancia = abs(percentis[1] - percentis[0]) if all(item is not None for item in percentis) else 0
+        contrastes.append({
+            "indicador": indicador,
+            "rotulo": maior["rotulo"],
+            "unidade": maior["unidade"],
+            "maior": {chave: maior[chave] for chave in ("id_regiao", "nome", "valor", "percentil")},
+            "menor": {chave: menor[chave] for chave in ("id_regiao", "nome", "valor", "percentil")},
+            "distancia_percentil": round(distancia, 1),
+            "interpretacao": INTERPRETACAO_CONTRASTE[indicador],
+        })
+
+    contrastes.sort(key=lambda item: (-item["distancia_percentil"], item["rotulo"]))
+    contrastes = contrastes[:3]
+    if not contrastes:
+        return None
+    nomes = ", ".join(item["rotulo"].lower() for item in contrastes)
+    return {
+        "leitura": f"Entre os bairros selecionados, os maiores contrastes mensuráveis aparecem em {nomes}.",
+        "contrastes": contrastes,
+        "proximo_passo": "Use os contrastes para escolher o que validar em campo; eles não formam ranking nem apontam um bairro vencedor.",
+    }
+
+
 def montar_diagnostico(
     segmento: dict,
     regioes: list[dict],
@@ -266,6 +323,7 @@ def montar_diagnostico(
         "segmento": segmento,
         "sem_score": True,
         "regioes": resultados,
+        "comparacao": _comparacao_selecionados(resultados),
         "avisos": [
             "O diagnóstico organiza evidências e não recomenda investimento.",
             "Percentis representam posição relativa entre os 94 bairros, não probabilidade de sucesso.",
