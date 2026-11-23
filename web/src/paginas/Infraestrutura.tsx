@@ -4,7 +4,6 @@ import { forwardRef, useRef } from "react";
 import { Database, Globe, HardDrive, Server, Monitor } from "lucide-react";
 import { AnimatedBeam } from "@/components/ui/animated-beam";
 import { NumberTicker } from "@/components/ui/number-ticker";
-import { LogoCesar } from "@/components/Marca";
 import { useStatus } from "@/hooks/dados";
 import { dataHora, duracao } from "@/lib/formato";
 import { cn } from "@/lib/utils";
@@ -156,13 +155,6 @@ docker compose up -d`}
         </section>
       </div>
 
-      <footer className="mt-10 flex flex-wrap items-center gap-4 border-t border-nevoa pt-6">
-        <LogoCesar className="h-11" />
-        <div className="text-[13px] leading-relaxed text-tinta-suave">
-          <p className="font-semibold text-marinho">Projeto final em conjunto: Infraestrutura de Software e Banco de Dados</p>
-          <p>Bacharelado em Sistemas de Informação, CESAR School, 2026.2. Equipe 2 do PontoZero.</p>
-        </div>
-      </footer>
     </div>
   );
 }

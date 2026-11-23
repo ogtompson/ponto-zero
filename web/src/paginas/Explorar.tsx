@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ChevronsDown, ChevronsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LogoCesar } from "@/components/Marca";
 import { Mapa } from "@/components/Mapa";
 import { PainelControles } from "@/components/PainelControles";
 import { PainelResultados } from "@/components/PainelResultados";
@@ -14,10 +13,9 @@ export function Explorar() {
     <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
       <aside className="flex shrink-0 flex-col border-nevoa bg-white lg:w-[340px] lg:border-r lg:overflow-y-auto">
         <PainelControles />
-        <footer className="mt-auto hidden items-center gap-3 border-t border-nevoa px-5 py-4 lg:flex">
-          <LogoCesar className="h-9" />
+        <footer className="mt-auto hidden border-t border-nevoa px-5 py-4 lg:block">
           <p className="text-[11.5px] leading-snug text-tinta-fraca">
-            Projeto acadêmico da CESAR School. Dados do IBGE, da Prefeitura do Recife e do OpenStreetMap. Interface com componentes do 21st.dev.
+            Dados territoriais do IBGE e da Prefeitura do Recife. Fontes, datas e limitações acompanham cada análise.
           </p>
         </footer>
       </aside>

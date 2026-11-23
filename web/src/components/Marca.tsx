@@ -13,19 +13,6 @@ export function LogoPontoZero({ claro = false, className }: { claro?: boolean; c
   );
 }
 
-export function LogoCesar({ claro = false, className }: { claro?: boolean; className?: string }) {
-  return (
-    <img
-      src={claro ? "/marca/cesar-school-branco.png" : "/marca/cesar-school.png"}
-      alt="CESAR School"
-      width={218}
-      height={200}
-      className={cn("h-8 w-auto select-none", className)}
-      draggable={false}
-    />
-  );
-}
-
 /** O pino da marca: usado para marcar os bairros escolhidos. */
 export function Pino({ className, tamanho = 22 }: { className?: string; tamanho?: number }) {
   return (
