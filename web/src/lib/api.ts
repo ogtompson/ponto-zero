@@ -236,6 +236,9 @@ export type RespostaDiagnostico = {
     nome: string;
     dimensoes: DimensaoDiagnostico[];
     sintese: {
+      leitura?: string;
+      sinais?: string[];
+      atencoes?: string[];
       dimensoes_disponiveis: number;
       dimensoes_parciais: number;
       dimensoes_insuficientes: number;

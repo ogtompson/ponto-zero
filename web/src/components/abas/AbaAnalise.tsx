@@ -149,11 +149,11 @@ export function AbaAnalise() {
       <header className="flex flex-col gap-3 border-b border-nevoa pb-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="larga text-[21px] font-extrabold leading-tight text-marinho">Diagnóstico territorial</h2>
+            <h2 className="larga text-[21px] font-extrabold leading-tight text-marinho">Leitura territorial</h2>
             <span className="rounded-full bg-secondary px-2.5 py-1 text-[11.5px] font-semibold text-marinho">{maturidade}</span>
           </div>
           <p className="mt-1 max-w-[70ch] text-[13px] leading-relaxed text-tinta-suave">
-            Evidências para {d.segmento.nome.toLowerCase()} organizadas por dimensão. Compare os sinais e investigue as divergências antes de decidir.
+            O que os dados sustentam sobre {d.segmento.nome.toLowerCase()}, o que ainda precisa ser validado e onde aprofundar a investigação.
           </p>
         </div>
         <span className="numeros shrink-0 text-[11.5px] text-tinta-fraca">Metodologia {d.versao_metodologia}</span>
@@ -168,6 +168,8 @@ export function AbaAnalise() {
         {d.regioes.map((regiao) => {
           const confianca = regiao.dimensoes.find((item) => item.id === "confianca_dados");
           const dimensoes = regiao.dimensoes.filter((item) => item.id !== "confianca_dados");
+          const sinais = regiao.sintese.sinais ?? [];
+          const atencoes = regiao.sintese.atencoes ?? [];
           return (
             <article key={regiao.id_regiao} className="rounded-lg border border-nevoa bg-white p-4 sm:p-5">
               <header className="flex flex-col gap-2 border-b border-nevoa pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -179,13 +181,44 @@ export function AbaAnalise() {
                 </div>
                 {confianca && <span className="self-start"><SeloConfianca nivel={confianca.confianca} /></span>}
               </header>
-              <div className="divide-y divide-nevoa pt-4">
-                {dimensoes.map((dimensao) => <Dimensao key={dimensao.id} dimensao={dimensao} regiaoId={regiao.id_regiao} />)}
-              </div>
+
+              <p className="max-w-[76ch] pt-4 text-[14px] font-medium leading-relaxed text-marinho">
+                {regiao.sintese.leitura ?? "Este snapshot preserva a leitura da metodologia vigente quando a análise foi salva."}
+              </p>
+
+              {(sinais.length > 0 || atencoes.length > 0) && <div className="mt-4 grid gap-5 md:grid-cols-2 md:gap-8">
+                <section aria-labelledby={`sinais-${regiao.id_regiao}`}>
+                  <h4 id={`sinais-${regiao.id_regiao}`} className="semi-larga flex items-center gap-2 text-[14px] font-bold text-marinho">
+                    <CircleCheck className="size-4 text-[#287553]" aria-hidden /> Sinais observados
+                  </h4>
+                  <ul className="mt-2 space-y-2 text-[12.5px] leading-relaxed text-tinta-suave">
+                    {sinais.map((texto) => <li key={texto}>{texto}</li>)}
+                  </ul>
+                </section>
+                <section aria-labelledby={`atencoes-${regiao.id_regiao}`}>
+                  <h4 id={`atencoes-${regiao.id_regiao}`} className="semi-larga flex items-center gap-2 text-[14px] font-bold text-marinho">
+                    <TriangleAlert className="size-4 text-ouro-escuro" aria-hidden /> Antes de decidir
+                  </h4>
+                  <ul className="mt-2 space-y-2 text-[12.5px] leading-relaxed text-tinta-suave">
+                    {atencoes.map((texto) => <li key={texto}>{texto}</li>)}
+                  </ul>
+                </section>
+              </div>}
+
               <footer className="mt-4 flex items-start gap-2 border-t border-nevoa pt-3 text-[12.5px] leading-relaxed text-tinta-suave">
                 <ShieldCheck className="mt-0.5 size-4 shrink-0 text-marinho-3" aria-hidden />
                 <p><strong className="text-marinho">Próximo passo:</strong> {regiao.sintese.proximo_passo}</p>
               </footer>
+
+              <details className="group mt-3 border-t border-nevoa pt-2">
+                <summary className="flex min-h-9 w-fit cursor-pointer list-none items-center gap-1.5 text-[12.5px] font-semibold text-marinho marker:hidden">
+                  Ver evidências, fontes e limitações
+                  <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden />
+                </summary>
+                <div className="divide-y divide-nevoa pt-3">
+                  {dimensoes.map((dimensao) => <Dimensao key={dimensao.id} dimensao={dimensao} regiaoId={regiao.id_regiao} />)}
+                </div>
+              </details>
             </article>
           );
         })}

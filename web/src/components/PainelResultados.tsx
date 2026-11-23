@@ -21,7 +21,7 @@ export function PainelResultados() {
   const sessao = useSessao();
   const salvas = useAnalisesSalvas(!!sessao.data);
   const segs = useSegmentos();
-  const [aba, setAba] = useState<string>("indicadores");
+  const [aba, setAba] = useState<string>("analise");
   const [salvar, setSalvar] = useState(false);
   const [conta, setConta] = useState(false);
 
@@ -41,17 +41,17 @@ export function PainelResultados() {
     <Tabs value={aba} onValueChange={setAba} className="flex h-full flex-col">
       <div className="flex flex-wrap items-center gap-2 border-b border-nevoa bg-white px-3 py-2">
         <TabsList aria-label="Resultados" className="max-w-full overflow-x-auto">
+          <TabsTrigger value="analise">
+            <Telescope /> Leitura
+          </TabsTrigger>
+          <TabsTrigger value="comparar">
+            <Columns3 /> Comparar
+          </TabsTrigger>
           <TabsTrigger value="indicadores">
             <BarChart3 /> Indicadores
           </TabsTrigger>
           <TabsTrigger value="oferta">
             <Store /> Oferta
-          </TabsTrigger>
-          <TabsTrigger value="comparar">
-            <Columns3 /> Comparar
-          </TabsTrigger>
-          <TabsTrigger value="analise">
-            <Telescope /> Diagnóstico
           </TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
@@ -92,10 +92,10 @@ export function PainelResultados() {
           </div>
         ) : (
           <>
+            <TabsContent value="analise"><AbaAnalise /></TabsContent>
+            <TabsContent value="comparar"><AbaComparar /></TabsContent>
             <TabsContent value="indicadores"><AbaIndicadores /></TabsContent>
             <TabsContent value="oferta"><AbaOferta /></TabsContent>
-            <TabsContent value="comparar"><AbaComparar /></TabsContent>
-            <TabsContent value="analise"><AbaAnalise /></TabsContent>
           </>
         )}
       </div>
