@@ -245,6 +245,19 @@ export type RespostaDiagnostico = {
       proximo_passo: string;
     };
   }[];
+  comparacao?: null | {
+    leitura: string;
+    contrastes: {
+      indicador: string;
+      rotulo: string;
+      unidade: string;
+      maior: { id_regiao: number; nome: string; valor: number; percentil: number | null };
+      menor: { id_regiao: number; nome: string; valor: number; percentil: number | null };
+      distancia_percentil: number;
+      interpretacao: string;
+    }[];
+    proximo_passo: string;
+  };
   avisos: string[];
 };
 

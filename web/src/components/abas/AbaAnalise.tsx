@@ -3,6 +3,7 @@ import {
   ChevronDown,
   CircleCheck,
   CircleDashed,
+  Columns3,
   Route,
   ShieldCheck,
   Store,
@@ -10,7 +11,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { useDiagnostico, useSnapshotDaSelecao } from "@/hooks/dados";
-import type { DimensaoDiagnostico, EvidenciaDiagnostico } from "@/lib/api";
+import type { DimensaoDiagnostico, EvidenciaDiagnostico, RespostaDiagnostico } from "@/lib/api";
 import { num } from "@/lib/formato";
 import { useSelecao } from "@/lib/selecao";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,46 @@ function valorDaEvidencia(evidencia: EvidenciaDiagnostico) {
   if (evidencia.unidade === "R$ por mês") return `R$ ${num(evidencia.valor)}`;
   const casas = evidencia.unidade.includes("/") || evidencia.unidade.includes("km²") ? 2 : 0;
   return `${num(evidencia.valor, casas)} ${evidencia.unidade}`;
+}
+
+function valorDoContraste(valor: number, unidade: string) {
+  const casas = unidade.includes("/") || unidade.includes("km²") ? 2 : 0;
+  return `${num(valor, casas)} ${unidade}`;
+}
+
+function ComparacaoSelecionados({ comparacao }: { comparacao: NonNullable<RespostaDiagnostico["comparacao"]> }) {
+  return (
+    <section className="rounded-lg border border-nevoa bg-white p-4 sm:p-5" aria-labelledby="comparacao-selecionados">
+      <header className="flex items-start gap-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-marinho text-ouro">
+          <Columns3 className="size-[18px]" aria-hidden />
+        </span>
+        <div>
+          <h3 id="comparacao-selecionados" className="larga text-[18px] font-extrabold text-marinho">Onde os bairros mais diferem</h3>
+          <p className="mt-1 max-w-[76ch] text-[13px] leading-relaxed text-tinta-suave">{comparacao.leitura}</p>
+        </div>
+      </header>
+
+      <dl className="mt-4 divide-y divide-nevoa border-y border-nevoa">
+        {comparacao.contrastes.map((contraste) => (
+          <div key={contraste.indicador} className="grid gap-2 py-3.5 md:grid-cols-[minmax(11rem,0.8fr)_minmax(18rem,1.2fr)_minmax(16rem,1fr)] md:items-center md:gap-5">
+            <dt className="text-[13px] font-bold text-marinho">{contraste.rotulo}</dt>
+            <dd className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[12.5px] text-tinta-suave">
+              <span><strong className="text-marinho">{contraste.maior.nome}</strong> {valorDoContraste(contraste.maior.valor, contraste.unidade)}</span>
+              <span aria-hidden>e</span>
+              <span><strong className="text-marinho">{contraste.menor.nome}</strong> {valorDoContraste(contraste.menor.valor, contraste.unidade)}</span>
+            </dd>
+            <dd className="text-[12px] leading-relaxed text-tinta-suave">{contraste.interpretacao}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <p className="mt-3 flex items-start gap-2 text-[12.5px] leading-relaxed text-tinta-suave">
+        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-marinho-3" aria-hidden />
+        {comparacao.proximo_passo}
+      </p>
+    </section>
+  );
 }
 
 function SeloConfianca({ nivel }: { nivel: DimensaoDiagnostico["confianca"] }) {
@@ -163,6 +204,8 @@ export function AbaAnalise() {
         <TriangleAlert className="mt-0.5 size-4 shrink-0 text-ouro-escuro" aria-hidden />
         <p><strong>Leitura orientativa:</strong> percentis mostram posição relativa entre bairros, não probabilidade de sucesso nem recomendação de investimento.</p>
       </div>
+
+      {d.comparacao && <ComparacaoSelecionados comparacao={d.comparacao} />}
 
       <div className="flex flex-col gap-4">
         {d.regioes.map((regiao) => {
