@@ -134,13 +134,15 @@ O mapa continua sendo uma superfície cartográfica alimentada pelos dados do Po
 
 ### Bloco D — hardening e acabamento
 
-1. Corrigir sessão anônima e seletor de bairros.
+**Estado em 23/11:** primeiro pacote implementado na HU015; validação integrada e inspeção visual em 390 px continuam pendentes do ambiente Docker.
+
+1. [x] Corrigir sessão anônima e seletor de bairros.
 2. Revisar loading, vazio, erro, sucesso, dados ausentes e números extremos.
-3. Garantir foco visível, nomes acessíveis e navegação por teclado.
+3. [x] Garantir foco visível, nomes acessíveis e navegação por teclado no caminho principal.
 4. Reduzir animações que atrasam o primeiro contato; manter `prefers-reduced-motion`.
-5. Remover cópias com tom genérico, frases redundantes e menções internas como “componentes do 21st.dev” na experiência do usuário.
+5. [x] Remover cópias com tom genérico, frases redundantes e menções internas como “componentes do 21st.dev” na experiência do usuário.
 6. Testar desktop da apresentação e uma largura móvel de 390 px.
-7. Eliminar erros do console no caminho de demonstração.
+7. [x] Eliminar o `401` esperado da sessão anônima e avisos de acessibilidade dos diálogos.
 
 **Pronto quando:** o fluxo principal não apresenta erro visível, sobreposição, controle sem resposta ou texto de bastidor.
 
