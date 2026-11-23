@@ -23,15 +23,6 @@
   --color-tinta: #19214a;
   --color-tinta-suave: #596182;
   --color-tinta-fraca: #8a90ab;
-  --color-cesar: #ff6002;
-
-  /* escala do mapa (sequencial em marinho) */
-  --color-escala-1: #eef0f7;
-  --color-escala-2: #c9cee3;
-  --color-escala-3: #98a2c9;
-  --color-escala-4: #5c69a3;
-  --color-escala-5: #2b3672;
-
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -93,7 +84,7 @@
 /* --------------------------- mapa --------------------------- */
 .leaflet-container {
   font-family: var(--font-sans);
-  background: #e9ecf3;
+  background: #ebeae6;
 }
 .leaflet-tooltip.pz-dica {
   background: var(--color-marinho);

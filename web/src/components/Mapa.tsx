@@ -3,12 +3,16 @@
 import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import { MapContainer, Pane, TileLayer, useMap } from "react-leaflet";
-import { useMapa, useOferta, useOfertaMapa, useRegioes, useSegmentos } from "@/hooks/dados";
+import { useMapa, useOfertaMapa, useRegioes, useSegmentos } from "@/hooks/dados";
 import { num } from "@/lib/formato";
-import { useSelecao } from "@/lib/selecao";
+import { useSelecao, type CorMapa } from "@/lib/selecao";
 import { PINO_SVG } from "./Marca";
 
-const ESCALA = ["#eef0f7", "#c9cee3", "#98a2c9", "#5c69a3", "#2b3672"];
+const ESCALAS: Record<CorMapa, string[]> = {
+  populacao: ["#edf7f3", "#c7e7dd", "#88cbbc", "#3f9f91", "#176b62"],
+  renda: ["#fff8e6", "#f4e1a1", "#dfbd4e", "#b8891d", "#76570d"],
+  oferta: ["#fff2e9", "#f7ccb5", "#ed9b78", "#d5654c", "#963b3e"],
+};
 const MARCO_ZERO: [number, number] = [-8.0631, -34.8711];
 const CENTRO_RECIFE: [number, number] = [-8.05, -34.93];
 
@@ -25,11 +29,11 @@ function quebras(valores: number[]): number[] {
   return [0.2, 0.4, 0.6, 0.8].map((q) => v[Math.min(v.length - 1, Math.floor(q * v.length))]);
 }
 
-function corPara(valor: number | null | undefined, cortes: number[]) {
+function corPara(valor: number | null | undefined, cortes: number[], escala: string[]) {
   if (valor == null) return "#ffffff";
   let i = 0;
   while (i < cortes.length && valor > cortes[i]) i++;
-  return ESCALA[i];
+  return escala[i];
 }
 
 export function useLegenda() {
@@ -48,6 +52,7 @@ export function useLegenda() {
       regioes.data?.forEach((r) => valores.set(r.id_regiao, cor === "renda" ? r.renda : r.populacao));
     const lista = [...valores.values()].filter((v): v is number => v != null);
     const cortes = quebras(lista);
+    const escala = ESCALAS[cor];
     const titulo =
       cor === "populacao"
         ? "Moradores por bairro (Censo 2022)"
@@ -55,7 +60,7 @@ export function useLegenda() {
           ? "Renda média domiciliar (Censo 2010)"
           : `${nomeSeg ?? "Estabelecimentos"} por 10 mil habitantes`;
     const fmt = (v: number) => (cor === "renda" ? `R$ ${num(v)}` : num(v, cor === "oferta" ? 1 : 0));
-    return { valores, quantidades, cortes, titulo, fmt, min: Math.min(...lista), max: Math.max(...lista) };
+    return { valores, quantidades, cortes, escala, titulo, fmt, min: Math.min(...lista), max: Math.max(...lista) };
   }, [cor, oferta.data, regioes.data, nomeSeg]);
 }
 
@@ -100,7 +105,7 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
     mascara.current = L.polygon([mundo, ...bairros], {
       pane: "mascara",
       stroke: false,
-      fillColor: "#f5f6fa",
+      fillColor: "#f3f2ee",
       fillOpacity: 1,
       fillRule: "evenodd",
       interactive: false,
@@ -144,7 +149,7 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
       const p = feature?.properties as Props;
       const selecionado = regioes.includes(p.id_regiao);
       return {
-        fillColor: selecionado ? "#DDBA43" : corPara(legenda.valores.get(p.id_regiao), legenda.cortes),
+        fillColor: selecionado ? "#DDBA43" : corPara(legenda.valores.get(p.id_regiao), legenda.cortes, legenda.escala),
         fillOpacity: selecionado ? 0.62 : 0.78,
         color: selecionado ? "#19214A" : "#ffffff",
         weight: selecionado ? 2.6 : 0.9,
@@ -175,41 +180,6 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
   }, [regioes, legenda, mapa.data]);
 
   return null;
-}
-
-function CamadaEstabelecimentos() {
-  const map = useMap();
-  const { segmento, regioes } = useSelecao();
-  const oferta = useOferta(segmento, regioes);
-  const grupo = useRef<L.LayerGroup | null>(null);
-
-  useEffect(() => {
-    if (!grupo.current) grupo.current = L.layerGroup().addTo(map);
-    const g = grupo.current;
-    g.clearLayers();
-    if (!segmento || !oferta.data) return;
-    const daCidade = regioes.length === 0;
-    for (const e of oferta.data.estabelecimentos) {
-      L.circleMarker([e.lat, e.lng], {
-        radius: daCidade ? 3.2 : 5,
-        fillColor: "#DDBA43",
-        fillOpacity: 1,
-        color: "#19214A",
-        weight: daCidade ? 1 : 1.6,
-        pane: "estabelecimentos",
-      })
-        .bindPopup(
-          `<strong>${escapar(e.nome)}</strong><br/>${e.endereco ? escapar(e.endereco) + "<br/>" : ""}<span style="color:#596182">${escapar(e.regiao)}</span>`,
-        )
-        .addTo(g);
-    }
-  }, [oferta.data, segmento, regioes.length, map]);
-
-  return null;
-}
-
-function escapar(t: string) {
-  return t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 }
 
 function AjustaTamanho() {
@@ -252,10 +222,8 @@ export function Mapa() {
           />
         </Pane>
         <Pane name="mascara" style={{ zIndex: 460, pointerEvents: "none" }} />
-        <Pane name="estabelecimentos" style={{ zIndex: 620 }} />
         <Pane name="pinos" style={{ zIndex: 660, pointerEvents: "none" }} />
         <CamadaBairros legenda={legenda} />
-        <CamadaEstabelecimentos />
         <ZoomCanto />
         <AjustaTamanho />
       </MapContainer>
@@ -280,14 +248,13 @@ function ZoomCanto() {
 }
 
 function Legenda({ legenda }: { legenda: ReturnType<typeof useLegenda> }) {
-  const { segmento } = useSelecao();
   if (!legenda.cortes.length) return null;
   const faixas = [legenda.min, ...legenda.cortes, legenda.max];
   return (
     <div className="pointer-events-none absolute bottom-3 left-3 z-[500] w-60 rounded-md bg-white/95 p-3 shadow-[0_6px_24px_rgb(25_33_74/0.14)]">
       <p className="text-[12.5px] font-semibold leading-tight text-marinho">{legenda.titulo}</p>
       <div className="mt-2 flex h-2.5 overflow-hidden rounded-full">
-        {ESCALA.map((c) => (
+        {legenda.escala.map((c) => (
           <span key={c} className="flex-1" style={{ background: c }} />
         ))}
       </div>
@@ -299,11 +266,6 @@ function Legenda({ legenda }: { legenda: ReturnType<typeof useLegenda> }) {
         <span className="flex items-center gap-1.5">
           <span className="inline-block size-3 rounded-[3px] border-2 border-marinho bg-ouro/70" /> escolhido
         </span>
-        {segmento != null && (
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block size-2.5 rounded-full border-[1.5px] border-marinho bg-ouro" /> estabelecimento
-          </span>
-        )}
       </div>
     </div>
   );
