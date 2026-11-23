@@ -1,6 +1,6 @@
 # Plano de estabilização do MVP
 
-**Revisão:** 20 de novembro de 2026
+**Revisão:** 23 de novembro de 2026
 
 **Marco imediato:** apresentação ao professor em 21 de novembro de 2026
 
@@ -26,6 +26,18 @@ O professor deve conseguir reconhecer três qualidades:
 
 ## 2. Diagnóstico consolidado
 
+### Feedback da apresentação de 21/11
+
+| Feedback | Decisão | Prioridade |
+|---|---|---|
+| Testar Google Maps | Fazer um *spike* isolado com Maps JavaScript API e, se necessário, Places API. A API exige chave e faturamento; a franquia gratuita não elimina controle de cota, segurança da chave e custo potencial. Não substituir o mapa atual antes de comparar legibilidade, integração com GeoJSON, licença e custo. | P1 |
+| Avaliar Folium | Usar apenas como alternativa para protótipos analíticos, notebooks ou mapas estáticos incorporados. Folium gera Leaflet/HTML no Python e não substitui diretamente o mapa interativo React/Leaflet já integrado ao estado da aplicação. | P2 |
+| Retirar CESAR School | Remover marca, nome da instituição e texto de “projeto acadêmico” da experiência do produto. Manter créditos acadêmicos somente na documentação ou no material da disciplina, fora do fluxo do usuário. | P0 |
+| Mapa excessivamente azul | Revisar separadamente o mapa-base e as escalas temáticas. Preservar marinho e ouro como identidade da interface, mas adotar paletas cartográficas distintas e acessíveis para população, renda e oferta, sem usar apenas cor para comunicar estado. | P1 |
+| Pontos de estabelecimentos desapareceram | Não exibir uma legenda para uma camada vazia. A base municipal continua responsável pelos totais por bairro, mas não sustenta pontos precisos. Restaurar pontos somente com uma fonte georreferenciada identificada, cobertura mensurada e distinção visual entre oferta formal agregada e locais observados. | P0 |
+
+O mapa continua sendo uma superfície cartográfica alimentada pelos dados do PontoZero. Trocar o provedor do mapa-base não resolve a ausência de coordenadas empresariais e não altera, por si só, a metodologia analítica.
+
 ### P0 — ameaça a credibilidade ou a demonstração
 
 | Problema | Consequência | Resposta |
@@ -37,6 +49,8 @@ O professor deve conseguir reconhecer três qualidades:
 | Seletor de bairros permanece aberto após a escolha | Encobre a interface e interrompe o fluxo | Fechar após seleção e limpar a busca |
 | Texto ainda apresenta OSM como fonte dos estabelecimentos | Contradiz a metodologia revisada | Atualizar interface, README e documentação junto da nova carga |
 | Trabalho analítico está sem commit na branch de experiência | Risco de perda e histórico confuso | Isolar o incremento analítico antes de novas alterações |
+| Legenda informa pontos que a camada atual não consegue desenhar | O mapa promete uma evidência inexistente | Ocultar a legenda vazia e explicar a granularidade por bairro; reintroduzir pontos apenas com fonte georreferenciada válida |
+| Marca acadêmica aparece no produto | Enfraquece a percepção de startup e expõe texto de bastidor | Remover CESAR School e referências a projeto acadêmico da interface pública |
 
 ### P1 — reduz qualidade do MVP, mas não deve bloquear o recorte de amanhã
 
@@ -102,6 +116,18 @@ O professor deve conseguir reconhecer três qualidades:
 
 **Pronto quando:** alguém consegue explicar a diferença entre dois bairros sem abrir todas as abas nem interpretar sozinho uma tabela.
 
+### Bloco C1 — estabilizar a experiência cartográfica
+
+1. Remover imediatamente a legenda de estabelecimentos quando não houver pontos georreferenciados.
+2. Manter contagem absoluta e taxa por 10 mil moradores nos bairros, com fonte e granularidade explícitas.
+3. Criar uma escala cartográfica por indicador, com contraste acessível e menos predominância do azul.
+4. Retirar CESAR School e demais textos de bastidor da interface pública.
+5. Executar um comparativo curto entre a solução atual e Google Maps, usando o mesmo GeoJSON e o mesmo caso de demonstração.
+6. Registrar custo, exigência de chave, franquia, restrições e comportamento sem internet antes de decidir por migração.
+7. Prototipar Folium fora do produto somente se ele acelerar a validação de uma análise ou relatório.
+
+**Pronto quando:** mapa, legenda e fonte dizem a mesma coisa; nenhuma camada vazia é anunciada; a identidade visual não prejudica a leitura temática; e a escolha do provedor cartográfico está apoiada em teste, não em aparência isolada.
+
 ### Bloco D — hardening e acabamento
 
 1. Corrigir sessão anônima e seletor de bairros.
@@ -132,6 +158,7 @@ O professor deve conseguir reconhecer três qualidades:
 ```text
 A. proteção do trabalho
 → B. base empresarial
+→ C1. estabilização cartográfica
 → C. leitura decisória
 → D. hardening
 → E. ensaio completo
@@ -147,6 +174,7 @@ Se o tempo apertar, reduzir o número de segmentos validados antes de cortar qua
 | `HU013/tompson-base-empresas-recife` | substituir OSM como fonte principal da oferta | `feat(dados)`, `feat(banco)`, `test(dados)`, `docs(fontes)` |
 | `HU014/tompson-fluxo-decisao` | reorganizar Explorar e resultados | `feat(explorar)`, `style(explorar)`, `fix(a11y)` |
 | `HU015/tompson-hardening-demo` | corrigir bloqueadores e preparar entrega | `fix(auth)`, `fix(filtros)`, `fix(responsividade)`, `docs(demo)` |
+| `HU016/tompson-estabilizacao-cartografica` | incorporar o feedback sobre mapa, marca e camadas | `docs(produto)`, `fix(mapa)`, `style(mapa)`, `chore(marca)` |
 
 Cada branch parte de `dev`, recebe build e testes antes do merge e entra em `dev` por incremento completo. `main` recebe apenas a versão ensaiada para a apresentação.
 
