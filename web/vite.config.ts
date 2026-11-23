@@ -7,7 +7,7 @@ import { defineConfig } from "vite";
 // No Docker quem faz esse encaminhamento é o Nginx (ver nginx.conf).
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  resolve: { alias: { "@": path.resolve(__dirname, "src") } },
+  resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
   server: {
     port: 5173,
     proxy: { "/api": process.env.API_URL ?? "http://localhost:8000" },
