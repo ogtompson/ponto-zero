@@ -66,6 +66,11 @@ def test_diagnostico_separa_dimensoes_e_nao_cria_score():
     assert dimensoes["oferta_local"]["confianca"] == "aproximada"
     assert dimensoes["acesso_centralidade"]["status"] == "insuficiente"
     assert any("faixa etária" in texto for texto in dimensoes["perfil_publico"]["limitacoes"])
+    sintese = resposta["regioes"][0]["sintese"]
+    assert "Bairro B" in sintese["leitura"]
+    assert 1 <= len(sintese["sinais"]) <= 3
+    assert 1 <= len(sintese["atencoes"]) <= 3
+    assert "microárea" in sintese["proximo_passo"]
 
 
 def test_diagnostico_preserva_zero_como_valor_observado():
@@ -82,3 +87,4 @@ def test_diagnostico_preserva_zero_como_valor_observado():
     assert por_10k["valor"] == 0
     assert por_10k["disponivel"] is True
     assert oferta["limitacoes"]
+    assert any("não comprova demanda" in texto for texto in resposta["regioes"][0]["sintese"]["atencoes"])

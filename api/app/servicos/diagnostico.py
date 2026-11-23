@@ -10,7 +10,7 @@ from collections import defaultdict
 from typing import Iterable
 
 
-VERSAO_METODOLOGIA = "2026.11.2"
+VERSAO_METODOLOGIA = "2026.11.3"
 
 
 def percentil_empirico(valor: float | None, universo: Iterable[float | None]) -> float | None:
@@ -83,6 +83,63 @@ def _dimensao(
         "resumo": resumo,
         "evidencias": evidencias,
         "limitacoes": limitacoes,
+    }
+
+
+def _sintese_regiao(nome: str, dimensoes: list[dict]) -> dict:
+    evidencias = {
+        evidencia["indicador"]: evidencia
+        for dimensao in dimensoes
+        for evidencia in dimensao["evidencias"]
+    }
+    populacao = evidencias.get("populacao", {})
+    densidade = evidencias.get("densidade", {})
+    oferta_10k = evidencias.get("oferta_por_10k", {})
+
+    sinais = []
+    if populacao.get("disponivel"):
+        sinais.append(
+            f"População residente na faixa {populacao['faixa']} entre os bairros do Recife "
+            f"(percentil {populacao['percentil']:.1f})."
+        )
+    if densidade.get("disponivel"):
+        sinais.append(
+            f"Densidade demográfica na faixa {densidade['faixa']} da comparação municipal "
+            f"(percentil {densidade['percentil']:.1f})."
+        )
+    oferta_zero = oferta_10k.get("disponivel") and oferta_10k.get("valor") == 0
+    if oferta_zero:
+        sinais.append("A base formal não observou estabelecimentos do recorte neste bairro; isso não confirma ausência de oferta.")
+    elif oferta_10k.get("disponivel"):
+        sinais.append(
+            f"Oferta formal por moradores na faixa {oferta_10k['faixa']} "
+            f"(percentil {oferta_10k['percentil']:.1f}); isso indica intensidade cadastral, não oportunidade confirmada."
+        )
+
+    atencoes = []
+    if oferta_zero:
+        atencoes.append("A falta de registro formal não comprova demanda não atendida e deve ser verificada em campo.")
+    elif oferta_10k.get("faixa") == "alta":
+        atencoes.append("A pressão aparente da oferta formal é elevada e merece validação na microárea.")
+    elif oferta_10k.get("faixa") == "baixa":
+        atencoes.append("A menor oferta formal pode ser um sinal para investigar, mas não comprova demanda não atendida.")
+    atencoes.append("Acesso, fluxo e polos geradores ainda não possuem evidência suficiente nesta versão.")
+    atencoes.append("A renda disponível é histórica e deve ser tratada apenas como contexto aproximado.")
+
+    faixa_demanda = populacao.get("faixa", "indisponível")
+    faixa_oferta = "sem registro observado" if oferta_zero else oferta_10k.get("faixa", "indisponível")
+    leitura = (
+        f"{nome} combina demanda residente em faixa {faixa_demanda} e pressão da oferta formal em faixa "
+        f"{faixa_oferta} na comparação entre bairros. A leitura prioriza onde aprofundar a investigação, não uma decisão de investimento."
+    )
+    return {
+        "leitura": leitura,
+        "sinais": sinais[:3],
+        "atencoes": atencoes[:3],
+        "dimensoes_disponiveis": sum(d["status"] == "disponivel" for d in dimensoes),
+        "dimensoes_parciais": sum(d["status"] == "parcial" for d in dimensoes),
+        "dimensoes_insuficientes": sum(d["status"] == "insuficiente" for d in dimensoes),
+        "proximo_passo": "Validar a microárea, concorrentes relevantes e fluxo nos horários do segmento antes de decidir.",
     }
 
 
@@ -201,12 +258,7 @@ def montar_diagnostico(
             "id_regiao": rid,
             "nome": regiao["nome"],
             "dimensoes": dimensoes,
-            "sintese": {
-                "dimensoes_disponiveis": sum(d["status"] == "disponivel" for d in dimensoes),
-                "dimensoes_parciais": sum(d["status"] == "parcial" for d in dimensoes),
-                "dimensoes_insuficientes": sum(d["status"] == "insuficiente" for d in dimensoes),
-                "proximo_passo": "Investigar as evidências divergentes e validar a microárea antes de decidir.",
-            },
+            "sintese": _sintese_regiao(regiao["nome"], dimensoes),
         })
 
     return {

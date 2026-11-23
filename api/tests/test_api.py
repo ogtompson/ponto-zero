@@ -182,7 +182,7 @@ def test_conta_completa(cliente):
     assert len(criada["regioes"]) == 2
     assert criada["segmento"] == "Padaria"
     assert criada["snapshot_disponivel"] is True
-    assert criada["versao_metodologia"] == "2026.11.2"
+    assert criada["versao_metodologia"] == "2026.11.3"
     assert criada["snapshot"]["selection"]["segmento"]["nome"] == "Padaria"
     admin = os.getenv("ADMIN_DATABASE_URL")
     if admin:
