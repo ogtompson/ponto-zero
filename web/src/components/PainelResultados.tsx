@@ -17,13 +17,22 @@ import { PrimeirosPassos } from "./Vazio";
 
 export function PainelResultados() {
   const { segmento, regioes } = useSelecao();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const sessao = useSessao();
   const salvas = useAnalisesSalvas(!!sessao.data);
   const segs = useSegmentos();
-  const [aba, setAba] = useState<string>("analise");
   const [salvar, setSalvar] = useState(false);
   const [conta, setConta] = useState(false);
+  const abaParam = params.get("resultado");
+  const aba = ["analise", "comparar", "indicadores", "oferta"].includes(abaParam ?? "") ? abaParam! : "analise";
+  const mudarAba = (valor: string) => {
+    setParams((atuais) => {
+      const proximos = new URLSearchParams(atuais);
+      if (valor === "analise") proximos.delete("resultado");
+      else proximos.set("resultado", valor);
+      return proximos;
+    }, { replace: true });
+  };
 
   // análise salva aberta a partir de "Minhas análises": vale enquanto a seleção for a mesma
   const idParam = params.get("analise") ? Number(params.get("analise")) : null;
@@ -38,7 +47,7 @@ export function PainelResultados() {
   const podeSalvar = regioes.length >= 2 && segmento != null;
 
   return (
-    <Tabs value={aba} onValueChange={setAba} className="flex h-full flex-col">
+    <Tabs value={aba} onValueChange={mudarAba} className="flex h-full flex-col">
       <div className="flex flex-wrap items-center gap-2 border-b border-nevoa bg-white px-3 py-2">
         <TabsList aria-label="Resultados" className="max-w-full overflow-x-auto">
           <TabsTrigger value="analise">

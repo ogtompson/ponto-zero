@@ -28,7 +28,17 @@ export function PainelControles() {
   const segmentos = useSegmentos();
   const todas = useRegioes();
   const [aberto, setAberto] = useState(false);
+  const [busca, setBusca] = useState("");
   const porId = new Map(todas.data?.map((r) => [r.id_regiao, r]));
+  const normalizar = (texto: string) => texto.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+  const candidatas = (todas.data ?? []).filter((r) => normalizar(r.nome).includes(normalizar(busca)));
+  const visiveis = candidatas.slice(0, 20);
+
+  const selecionarRegiao = (id: number) => {
+    alternarRegiao(id);
+    setBusca("");
+    setAberto(false);
+  };
 
   return (
     <div className="flex flex-col divide-y divide-nevoa">
@@ -91,25 +101,21 @@ export function PainelControles() {
           </ul>
         )}
         <div className="flex items-center gap-2">
-          <Popover open={aberto} onOpenChange={setAberto}>
+          <Popover open={aberto} onOpenChange={(valor) => { setAberto(valor); if (!valor) setBusca(""); }}>
             <PopoverTrigger asChild>
               <Button variant="outline" className="flex-1 justify-start text-tinta-suave" disabled={!todas.data}>
                 <Plus /> Procurar bairro
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[290px] p-0">
-              <Command
-                filter={(valor, busca) =>
-                  valor.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().includes(busca.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()) ? 1 : 0
-                }
-              >
-                <CommandInput placeholder="Boa Viagem, Casa Forte..." />
+            <PopoverContent className="w-[min(290px,calc(100vw-2rem))] p-0">
+              <Command shouldFilter={false}>
+                <CommandInput value={busca} onValueChange={setBusca} aria-label="Procurar bairro pelo nome" placeholder="Boa Viagem, Casa Forte…" />
                 <CommandList>
-                  <CommandEmpty>Nenhum bairro com esse nome.</CommandEmpty>
-                  {todas.data?.map((r) => {
+                  {!visiveis.length && <CommandEmpty>Nenhum bairro com esse nome.</CommandEmpty>}
+                  {visiveis.map((r) => {
                     const marcado = regioes.includes(r.id_regiao);
                     return (
-                      <CommandItem key={r.id_regiao} value={r.nome} onSelect={() => alternarRegiao(r.id_regiao)}>
+                      <CommandItem key={r.id_regiao} value={r.nome} onSelect={() => selecionarRegiao(r.id_regiao)}>
                         <Check className={cn("size-4", marcado ? "text-marinho" : "text-transparent")} />
                         <span className="flex-1">{r.nome}</span>
                         <span className="text-xs text-tinta-fraca numeros">{num(r.populacao)} hab.</span>
@@ -117,6 +123,9 @@ export function PainelControles() {
                     );
                   })}
                 </CommandList>
+                {candidatas.length > visiveis.length && (
+                  <p className="border-t border-nevoa px-3 py-2 text-[11.5px] text-tinta-fraca">Digite mais letras para refinar os {candidatas.length} resultados.</p>
+                )}
               </Command>
             </PopoverContent>
           </Popover>
