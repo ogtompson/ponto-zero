@@ -202,7 +202,8 @@ def test_conta_completa(cliente):
 
     assert cliente.delete(f"/api/analises/{criada['id_analise']}").status_code == 204
     assert cliente.post("/api/auth/logout").status_code == 204
-    assert cliente.get("/api/auth/sessao").status_code == 401
+    assert cliente.get("/api/auth/sessao").status_code == 204
+    assert cliente.get("/api/analises").status_code == 401
 
 
 # --------------------------------------------------------------- HU-010

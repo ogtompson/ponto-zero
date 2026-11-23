@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
   api,
-  ErroApi,
   type AnaliseSalva,
   type Regiao,
   type RespostaAnalise,
@@ -82,14 +81,7 @@ export const useDiagnostico = (segmento: number | null, ids: number[]) =>
 export const useSessao = () =>
   useQuery({
     queryKey: ["sessao"],
-    queryFn: async () => {
-      try {
-        return await api.get<Usuario>("/auth/sessao");
-      } catch (e) {
-        if (e instanceof ErroApi && e.status === 401) return null;
-        throw e;
-      }
-    },
+    queryFn: () => api.get<Usuario | undefined>("/auth/sessao"),
     staleTime: 60_000,
   });
 

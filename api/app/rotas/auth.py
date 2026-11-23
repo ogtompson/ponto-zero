@@ -12,7 +12,7 @@ from ..seguranca import (
     confere_senha,
     encerrar_sessao,
     gerar_hash,
-    usuario_obrigatorio,
+    usuario_opcional,
 )
 from ..servicos.territorio import erro
 
@@ -110,5 +110,5 @@ def sair():
 
 
 @router.get("/sessao", summary="Usuário da sessão atual")
-def sessao(usuario: dict = Depends(usuario_obrigatorio)):
-    return usuario
+def sessao(usuario: dict | None = Depends(usuario_opcional)):
+    return usuario if usuario is not None else Response(status_code=204)
