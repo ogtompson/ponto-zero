@@ -39,7 +39,7 @@ export function MenuExportar({ idAnalise }: { idAnalise?: number }) {
 
   const botao = (
     <Button variant="outline" size="sm" disabled={!pronto || gerando}>
-      <Download /> {gerando ? "Gerando..." : "Exportar"}
+      <Download /> {gerando ? "Gerando…" : "Exportar"}
     </Button>
   );
 

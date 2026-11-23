@@ -61,12 +61,16 @@
     font-feature-settings: "kern";
   }
   body { min-height: 100dvh; }
-  button, a { touch-action: manipulation; }
+  button, a { touch-action: manipulation; -webkit-tap-highlight-color: rgb(221 186 67 / 0.22); }
   :focus-visible {
     outline: 2px solid var(--color-ouro);
     outline-offset: 2px;
   }
   ::selection { background: var(--color-ouro-claro); }
+}
+
+@media (pointer: fine) {
+  html { overscroll-behavior: none; }
 }
 
 /* Archivo tem eixo de largura: títulos usam a versão expandida,

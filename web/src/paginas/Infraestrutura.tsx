@@ -84,7 +84,7 @@ export function Infraestrutura() {
             ) : status.isError ? (
               "Sem resposta da API."
             ) : (
-              "Consultando..."
+              "Consultando…"
             )
           }
         />

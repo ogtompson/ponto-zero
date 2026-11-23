@@ -63,25 +63,29 @@ export function DialogoSalvar({ aberto, aoMudar }: { aberto: boolean; aoMudar: (
             e.preventDefault();
             const f = new FormData(e.currentTarget);
             const nome = String(f.get("nome") ?? "").trim();
-            if (!nome) return setErro("Dê um nome para a análise.");
+            if (!nome) {
+              setErro("Dê um nome para a análise.");
+              (e.currentTarget.elements.namedItem("nome") as HTMLElement | null)?.focus();
+              return;
+            }
             salvar.mutate({ nome, objetivo: String(f.get("objetivo") ?? "") });
           }}
         >
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="nome-analise">Nome</Label>
-            <Input id="nome-analise" name="nome" maxLength={100} placeholder="Ex.: Zona Sul antes da visita de campo" />
+            <Input id="nome-analise" name="nome" maxLength={100} autoComplete="off" placeholder="Ex.: Zona Sul antes da visita de campo…" />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="objetivo">Objetivo</Label>
-            <Textarea id="objetivo" name="objetivo" placeholder="Opcional. O que você quer decidir com esta análise?" />
+            <Textarea id="objetivo" name="objetivo" autoComplete="off" placeholder="Opcional: descreva o que você quer decidir…" />
           </div>
-          {erro && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">{erro}</p>}
+          {erro && <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">{erro}</p>}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => aoMudar(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={salvar.isPending}>
-              {salvar.isPending ? "Salvando..." : "Salvar análise"}
+              {salvar.isPending ? "Salvando…" : "Salvar análise"}
             </Button>
           </DialogFooter>
         </form>
