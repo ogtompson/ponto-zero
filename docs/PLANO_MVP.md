@@ -102,14 +102,16 @@ O mapa continua sendo uma superfície cartográfica alimentada pelos dados do Po
 
 ### Bloco C — transformar análise em decisão
 
-1. Fazer “Resumo” ou “Diagnóstico” abrir como resultado principal.
-2. Mostrar, antes das tabelas:
+**Estado em 23/11:** primeiro pacote implementado na HU014; testes unitários aprovados e validação integrada pendente do Docker.
+
+1. [x] Fazer “Leitura” abrir como resultado principal.
+2. [x] Mostrar, antes das tabelas:
    - leitura curta da região;
-   - 2 ou 3 evidências favoráveis;
-   - 2 ou 3 pontos de atenção;
+   - até 3 sinais observados, sem rotulá-los automaticamente como favoráveis;
+   - até 3 pontos de atenção;
    - confiança e cobertura;
    - próximo passo verificável.
-3. Reorganizar detalhes em três grupos: mercado, concorrência e território.
+3. [x] Colocar evidências, fontes e limitações sob demanda após a síntese.
 4. Manter fórmula, fonte e data acessíveis sem repetir longos avisos em todos os cartões.
 5. Trocar linguagem genérica por frases que mencionem segmento, região, valor e referência.
 6. Não publicar ranking geral nem “melhor bairro”.

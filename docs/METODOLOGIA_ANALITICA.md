@@ -258,7 +258,7 @@ A primeira versão do diagnóstico multidimensional está disponível em:
 GET /api/diagnostico?segmento={id}&regioes={id1,id2}
 ```
 
-A resposta usa a metodologia `2026.11.2` e mantém cinco dimensões independentes:
+A resposta usa a metodologia `2026.11.3` e mantém cinco dimensões independentes:
 
 1. demanda residente;
 2. adequação do público;
@@ -267,3 +267,5 @@ A resposta usa a metodologia `2026.11.2` e mantém cinco dimensões independente
 5. confiança dos dados.
 
 Cada evidência inclui valor, unidade, percentil entre os bairros, faixa relativa, fonte, data, qualidade, interpretação e limitações. Dimensões sem dados aparecem como insuficientes. A resposta declara `sem_score: true`, portanto não soma percentis nem produz recomendação automática.
+
+A versão `2026.11.3` acrescenta uma síntese por bairro com leitura curta, até três sinais observados, até três pontos que exigem validação e um próximo passo verificável. Esses textos são derivados das mesmas evidências do diagnóstico. “Oferta baixa” é apresentada como hipótese para investigar, nunca como demanda não atendida; zero cadastral continua significando ausência de registro observado, não ausência confirmada de estabelecimentos.
