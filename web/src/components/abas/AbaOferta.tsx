@@ -5,7 +5,7 @@ import { useSelecao } from "@/lib/selecao";
 import { Aviso } from "../Aviso";
 import { FonteInfo } from "../FonteInfo";
 import { IconeSegmento } from "../IconeSegmento";
-import { Vazio } from "../Vazio";
+import { EstadoErro, Vazio } from "../Vazio";
 import { Carregando } from "./AbaIndicadores";
 
 export function AbaOferta() {
@@ -18,7 +18,7 @@ export function AbaOferta() {
     return <Vazio titulo="Escolha um segmento para ver a oferta comercial">A oferta e a análise dependem do tipo de negócio.</Vazio>;
   if (salva.id && salva.isLoading) return <Carregando />;
   if (q.isLoading && !salva.snapshot) return <Carregando />;
-  if (q.isError && !salva.snapshot) return <Vazio titulo="Não deu para carregar a oferta">{(q.error as Error).message}</Vazio>;
+  if (q.isError && !salva.snapshot) return <EstadoErro titulo="Não deu para carregar a oferta" mensagem={(q.error as Error).message} aoTentarNovamente={() => q.refetch()} />;
   const d = salva.snapshot?.oferta ?? q.data!;
   const seg = salva.snapshot?.selection.segmento ?? segs.data?.find((s) => s.id_categoria === segmento);
   const referencia = seg?.por_10k_hab ?? 0;
@@ -39,8 +39,8 @@ export function AbaOferta() {
         ) : (
           <ul className="flex flex-col gap-3" aria-label={`Concentração de ${d.segmento.nome.toLowerCase()}`}>
             {d.regioes.map((r) => (
-              <li key={r.id_regiao} className="grid grid-cols-[minmax(110px,160px)_1fr] items-center gap-3">
-                <span className="truncate text-[14px] font-semibold">{r.nome}</span>
+              <li key={r.id_regiao} className="grid min-w-0 gap-2 sm:grid-cols-[minmax(110px,160px)_1fr] sm:items-center sm:gap-3">
+                <span className="min-w-0 break-words text-[14px] font-semibold">{r.nome}</span>
                 <div>
                   <div className="relative h-6 rounded bg-secondary">
                     <div
@@ -65,7 +65,7 @@ export function AbaOferta() {
                 </div>
               </li>
             ))}
-            <li className="flex items-center gap-2 pl-[calc(min(160px,40%)+12px)] text-[12px] text-tinta-suave">
+            <li className="flex items-center gap-2 text-[12px] text-tinta-suave sm:pl-[172px]">
               <span className="inline-block h-3 w-0.5 bg-ouro" /> média do Recife: {num(referencia, 2)} por 10 mil habitantes
             </li>
           </ul>

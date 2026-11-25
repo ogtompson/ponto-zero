@@ -48,22 +48,22 @@ export function PainelResultados() {
 
   return (
     <Tabs value={aba} onValueChange={mudarAba} className="flex h-full flex-col">
-      <div className="flex flex-wrap items-center gap-2 border-b border-nevoa bg-white px-3 py-2">
-        <TabsList aria-label="Resultados" className="max-w-full overflow-x-auto">
-          <TabsTrigger value="analise">
+      <div className="grid gap-2 border-b border-nevoa bg-white px-3 py-2 sm:flex sm:flex-wrap sm:items-center">
+        <TabsList aria-label="Resultados" className="max-w-full overflow-x-auto pb-1 sm:pb-0">
+          <TabsTrigger value="analise" className="flex-1 px-2 text-[12.5px] sm:flex-none sm:px-3 sm:text-sm [&_svg]:hidden sm:[&_svg]:block">
             <Telescope /> Leitura
           </TabsTrigger>
-          <TabsTrigger value="comparar">
+          <TabsTrigger value="comparar" className="flex-1 px-2 text-[12.5px] sm:flex-none sm:px-3 sm:text-sm [&_svg]:hidden sm:[&_svg]:block">
             <Columns3 /> Comparar
           </TabsTrigger>
-          <TabsTrigger value="indicadores">
+          <TabsTrigger value="indicadores" className="flex-1 px-2 text-[12.5px] sm:flex-none sm:px-3 sm:text-sm [&_svg]:hidden sm:[&_svg]:block">
             <BarChart3 /> Indicadores
           </TabsTrigger>
-          <TabsTrigger value="oferta">
+          <TabsTrigger value="oferta" className="flex-1 px-2 text-[12.5px] sm:flex-none sm:px-3 sm:text-sm [&_svg]:hidden sm:[&_svg]:block">
             <Store /> Oferta
           </TabsTrigger>
         </TabsList>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2 sm:ml-auto">
           {mesmaSelecao && <span className="hidden text-[13px] text-tinta-suave md:inline">Análise salva: <strong className="text-marinho">{salva!.nome}</strong></span>}
           {!mesmaSelecao && (
             <Tooltip>
