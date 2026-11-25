@@ -1,6 +1,6 @@
 # Plano de estabilização do MVP
 
-**Revisão:** 23 de novembro de 2026
+**Revisão:** 25 de novembro de 2026
 
 **Marco atual:** estabilização e ensaio para a apresentação final
 
@@ -52,16 +52,16 @@ O mapa continua sendo uma superfície cartográfica alimentada pelos dados do Po
 | Legenda informa pontos que a camada atual não consegue desenhar | O mapa promete uma evidência inexistente | Ocultar a legenda vazia e explicar a granularidade por bairro; reintroduzir pontos apenas com fonte georreferenciada válida |
 | Marca acadêmica aparece no produto | Enfraquece a percepção de startup e expõe texto de bastidor | Remover CESAR School e referências a projeto acadêmico da interface pública |
 
-### P1 — reduz qualidade do MVP, mas não deve bloquear o recorte de amanhã
+### P1 — reduz qualidade do MVP, mas não bloqueia a apresentação final
 
 | Problema | Resposta planejada |
 |---|---|
 | Bairro é uma unidade ampla para localização comercial | Manter como entrada e preparar análise por raio/setor censitário |
 | Renda carregada é de 2010 | Incorporar rendimento do responsável pelo domicílio do Censo 2022 |
 | Acesso e centralidade aparecem como insuficientes | Integrar polos oficiais de saúde e educação antes de inferir fluxo |
-| Mobile empilha controles, mapa e resultados em uma página longa | Criar navegação móvel entre configurar, mapa e resultados |
-| Lista de 94 bairros renderiza todos os itens | Virtualizar ou limitar a lista após estabilizar o fluxo principal |
-| Bundle principal tem cerca de 869 kB | Separar rotas e carregar mapa/relatório sob demanda |
+| Mobile empilhava controles, mapa e resultados em uma página longa | Resolvido: navegação móvel entre configurar, mapa e leitura, persistida na URL |
+| Lista de 94 bairros renderizava todos os itens | Resolvido: busca limita a renderização aos 20 resultados relevantes |
+| Bundle principal tinha cerca de 869 kB | Resolvido: rotas separadas; entrada inicial reduzida para cerca de 336 kB antes de gzip |
 
 ### P2 — evolução de produto
 
@@ -134,14 +134,14 @@ O mapa continua sendo uma superfície cartográfica alimentada pelos dados do Po
 
 ### Bloco D — hardening e acabamento
 
-**Estado em 23/11:** primeiro pacote implementado na HU015; validação integrada e inspeção visual em 390 px continuam pendentes do ambiente Docker.
+**Concluído em 25/11:** estados de consulta, recuperação de erro, movimento, fluxo móvel e conteúdo extremo revisados na HU015. Build, typecheck e detector Impeccable aprovados. O layout foi inspecionado com Chrome headless em 390 × 844 e 1440 × 900; a validação com dados reais e Docker passa a integrar o ensaio do Bloco E.
 
 1. [x] Corrigir sessão anônima e seletor de bairros.
-2. Revisar loading, vazio, erro, sucesso, dados ausentes e números extremos.
+2. [x] Revisar loading, vazio, erro, sucesso, dados ausentes e números extremos.
 3. [x] Garantir foco visível, nomes acessíveis e navegação por teclado no caminho principal.
-4. Reduzir animações que atrasam o primeiro contato; manter `prefers-reduced-motion`.
+4. [x] Reduzir animações que atrasam o primeiro contato; manter `prefers-reduced-motion`.
 5. [x] Remover cópias com tom genérico, frases redundantes e menções internas como “componentes do 21st.dev” na experiência do usuário.
-6. Testar desktop da apresentação e uma largura móvel de 390 px.
+6. [x] Testar desktop da apresentação e uma largura móvel de 390 px.
 7. [x] Eliminar o `401` esperado da sessão anônima e avisos de acessibilidade dos diálogos.
 
 **Pronto quando:** o fluxo principal não apresenta erro visível, sobreposição, controle sem resposta ou texto de bastidor.

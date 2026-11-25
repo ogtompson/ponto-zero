@@ -26,7 +26,7 @@ O PontoZero combina dados territoriais e empresariais em uma leitura espacial ex
 - O usuário pode explorar sem conta; a conta serve para salvar análises e preservar snapshots.
 - O mapa é a superfície de exploração e apresentação das camadas analíticas, não a fonte principal das conclusões.
 - A entrega acadêmica também precisa demonstrar banco de dados, Docker, persistência e rastreabilidade das fontes.
-- A apresentação ao professor ocorrerá em 21 de novembro de 2026.
+- A apresentação final ao professor ocorrerá em 28 de novembro de 2026.
 
 ## Capabilities and Constraints
 
