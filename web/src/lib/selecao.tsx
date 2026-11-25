@@ -21,15 +21,27 @@ type Selecao = {
 
 const Contexto = createContext<Selecao | null>(null);
 
+const inteiroPositivo = (valor: string | null) => {
+  if (valor == null || !/^\d+$/.test(valor)) return null;
+  const numero = Number(valor);
+  return Number.isSafeInteger(numero) && numero > 0 ? numero : null;
+};
+
+const idsValidos = (valor: string | null) =>
+  [...new Set((valor ?? "").split(",").map(inteiroPositivo).filter((id): id is number => id != null))].slice(0, MAX_REGIOES);
+
 export function SelecaoProvider({ children }: { children: ReactNode }) {
   const [params, setParams] = useSearchParams();
 
-  const segmento = params.get("segmento") ? Number(params.get("segmento")) : null;
+  const segmento = inteiroPositivo(params.get("segmento"));
   const regioes = useMemo(
-    () => (params.get("bairros") ?? "").split(",").filter(Boolean).map(Number).filter((n) => !Number.isNaN(n)),
+    () => idsValidos(params.get("bairros")),
     [params],
   );
-  const cor = (params.get("cor") as CorMapa) || (segmento ? "oferta" : "populacao");
+  const corParam = params.get("cor");
+  const cor: CorMapa = corParam === "populacao" || corParam === "renda" || (corParam === "oferta" && segmento != null)
+    ? corParam
+    : segmento ? "oferta" : "populacao";
 
   const atualizar = useCallback(
     (mudar: (p: URLSearchParams) => void) => {
@@ -58,7 +70,7 @@ export function SelecaoProvider({ children }: { children: ReactNode }) {
         }),
       alternarRegiao: (id) =>
         atualizar((p) => {
-          const atual = (p.get("bairros") ?? "").split(",").filter(Boolean).map(Number);
+          const atual = idsValidos(p.get("bairros"));
           let novo: number[];
           if (atual.includes(id)) novo = atual.filter((x) => x !== id);
           else if (atual.length >= MAX_REGIOES) {
@@ -72,7 +84,7 @@ export function SelecaoProvider({ children }: { children: ReactNode }) {
         }),
       removerRegiao: (id) =>
         atualizar((p) => {
-          const novo = (p.get("bairros") ?? "").split(",").filter(Boolean).map(Number).filter((x) => x !== id);
+          const novo = idsValidos(p.get("bairros")).filter((x) => x !== id);
           if (novo.length) p.set("bairros", novo.join(","));
           else p.delete("bairros");
         }),

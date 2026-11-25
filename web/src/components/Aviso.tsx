@@ -8,7 +8,7 @@ export function Aviso({ children, forte = false, className }: { children: React.
       role="note"
       className={cn(
         "flex items-start gap-2 text-[13px] leading-snug",
-        forte ? "rounded-md border-l-[3px] border-ouro bg-ouro-claro/60 px-3 py-2 font-semibold text-marinho" : "text-tinta-suave",
+        forte ? "rounded-md border border-ouro/60 bg-ouro-claro/60 px-3 py-2 font-semibold text-marinho" : "text-tinta-suave",
         className,
       )}
     >

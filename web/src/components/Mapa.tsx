@@ -13,7 +13,6 @@ const ESCALAS: Record<CorMapa, string[]> = {
   renda: ["#fff8e6", "#f4e1a1", "#dfbd4e", "#b8891d", "#76570d"],
   oferta: ["#fff2e9", "#f7ccb5", "#ed9b78", "#d5654c", "#963b3e"],
 };
-const MARCO_ZERO: [number, number] = [-8.0631, -34.8711];
 const CENTRO_RECIFE: [number, number] = [-8.05, -34.93];
 
 type Props = {
@@ -71,7 +70,6 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
   const camada = useRef<L.GeoJSON | null>(null);
   const mascara = useRef<L.Polygon | null>(null);
   const pinos = useRef<L.LayerGroup | null>(null);
-  const primeiraVez = useRef(true);
 
   // refs com o valor mais recente para os eventos do Leaflet
   const estado = useRef({ regioes, alternarRegiao, legenda, cor });
@@ -114,18 +112,6 @@ function CamadaBairros({ legenda }: { legenda: ReturnType<typeof useLegenda> }) 
     map.fitBounds(g.getBounds(), { padding: [8, 8] });
     map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
 
-    // revelação a partir do Marco Zero (uma vez, na primeira carga)
-    if (primeiraVez.current) {
-      primeiraVez.current = false;
-      g.eachLayer((l) => {
-        const p = (l as L.Layer & { feature?: GeoJSON.Feature }).feature?.properties as Props;
-        const el = (l as L.Path).getElement() as SVGElement | undefined;
-        if (!el || !p) return;
-        const d = Math.hypot(p.lat - MARCO_ZERO[0], p.lng - MARCO_ZERO[1]);
-        el.classList.add("pz-bairro");
-        el.style.animationDelay = `${Math.round(d * 9000)}ms`;
-      });
-    }
     function dica(p: Props) {
       const { legenda: lg, regioes: sel, cor: c } = estado.current;
       const v = lg.valores.get(p.id_regiao);
@@ -195,8 +181,9 @@ function AjustaTamanho() {
 
 export function Mapa() {
   const legenda = useLegenda();
+  const mapa = useMapa();
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full" aria-busy={mapa.isLoading}>
       <MapContainer
         center={CENTRO_RECIFE}
         zoom={12}
@@ -227,9 +214,19 @@ export function Mapa() {
         <ZoomCanto />
         <AjustaTamanho />
       </MapContainer>
-      <p className="pointer-events-none absolute left-3 top-3 z-[500] max-w-64 rounded-md bg-white/95 px-3 py-2 text-[11.5px] leading-snug text-tinta-suave shadow-sm">
-        Clique no mapa ou use <strong className="text-marinho">Procurar bairro</strong> para navegar pelo teclado.
-      </p>
+      {mapa.isError ? (
+        <div className="absolute left-3 top-3 z-[700] max-w-[calc(100%-5rem)] rounded-md bg-white p-3 text-[12px] shadow-[0_8px_24px_rgb(25_33_74/0.18)] sm:max-w-72" role="alert">
+          <p className="font-semibold text-marinho">Os limites dos bairros não carregaram.</p>
+          <p className="mt-1 leading-relaxed text-tinta-suave">O mapa-base continua disponível, mas a seleção territorial precisa da API.</p>
+          <button type="button" className="mt-2 rounded-md font-semibold text-marinho underline underline-offset-4" onClick={() => mapa.refetch()}>
+            Tentar novamente
+          </button>
+        </div>
+      ) : (
+        <p className="pointer-events-none absolute left-3 top-3 z-[500] max-w-[calc(100%-5rem)] rounded-md bg-white/95 px-3 py-2 text-[11.5px] leading-snug text-tinta-suave shadow-sm sm:max-w-64">
+          Selecione no mapa ou use <strong className="text-marinho">Procurar bairro</strong> para navegar pelo teclado.
+        </p>
+      )}
       <Legenda legenda={legenda} />
     </div>
   );

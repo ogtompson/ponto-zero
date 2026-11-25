@@ -7,7 +7,7 @@ import { num, valorIndicador } from "@/lib/formato";
 import { useSelecao } from "@/lib/selecao";
 import { Aviso } from "../Aviso";
 import { FonteInfo, ListaFontes } from "../FonteInfo";
-import { Vazio } from "../Vazio";
+import { EstadoErro, Vazio } from "../Vazio";
 import { Carregando } from "./AbaIndicadores";
 
 const soData = (t: string | null | undefined) => (t && /^\d/.test(t) ? t : null);
@@ -25,7 +25,7 @@ export function AbaComparar() {
   if (regioes.length < 2) return <Vazio titulo="Selecione ao menos duas regiões para comparar">Marque mais um bairro no mapa.</Vazio>;
   if (salva.id && salva.isLoading) return <Carregando />;
   if (q.isLoading && !salva.snapshot) return <Carregando />;
-  if (q.isError && !salva.snapshot) return <Vazio titulo="Não deu para montar a comparação">{(q.error as Error).message}</Vazio>;
+  if (q.isError && !salva.snapshot) return <EstadoErro titulo="Não deu para montar a comparação" mensagem={(q.error as Error).message} aoTentarNovamente={() => q.refetch()} />;
   const d = salva.snapshot?.comparacao ?? q.data!;
 
   return (

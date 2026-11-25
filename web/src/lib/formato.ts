@@ -2,6 +2,7 @@ const n0 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
 const n1 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const n2 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const dataCurta = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "America/Recife" });
 
 export const num = (v: number | null | undefined, casas = 0) =>
   v == null ? "indisponível" : casas === 2 ? n2.format(v) : casas === 1 ? n1.format(v) : n0.format(v);
@@ -25,8 +26,7 @@ export function numeroIndicador(valor: number, unidade: string): { numero: numbe
 export function dataBr(iso: string | null | undefined): string {
   if (!iso) return "data de referência não informada";
   if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
-    const [a, m, d] = iso.split("-");
-    return `${d}/${m}/${a}`;
+    return dataCurta.format(new Date(`${iso}T12:00:00-03:00`));
   }
   return iso;
 }

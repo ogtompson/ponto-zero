@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DialogoConta } from "@/components/DialogoConta";
 import { IconeSegmento } from "@/components/IconeSegmento";
 import { Pino } from "@/components/Marca";
-import { Vazio } from "@/components/Vazio";
+import { EstadoErro, Vazio } from "@/components/Vazio";
 import { useAnalisesSalvas, useSegmentos, useSessao } from "@/hooks/dados";
 import { api, type AnaliseSalva } from "@/lib/api";
 import { dataBr } from "@/lib/formato";
@@ -42,6 +42,8 @@ export function MinhasAnalises() {
           <Skeleton className="h-32" />
           <Skeleton className="h-32" />
         </div>
+      ) : lista.isError ? (
+        <EstadoErro titulo="Não foi possível carregar suas análises" mensagem={(lista.error as Error).message} aoTentarNovamente={() => lista.refetch()} />
       ) : !lista.data?.length ? (
         <Vazio titulo="Nenhuma análise salva ainda">Escolha um segmento e bairros no mapa e use o botão Salvar.</Vazio>
       ) : (

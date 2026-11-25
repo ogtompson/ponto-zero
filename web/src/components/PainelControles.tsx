@@ -49,10 +49,13 @@ export function PainelControles() {
       <Bloco titulo="O que você quer abrir?">
         {segmentos.isLoading ? (
           <div className="grid grid-cols-2 gap-2">
+            <span className="sr-only" role="status">Carregando segmentos…</span>
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-[58px]" />
+              <Skeleton key={i} className="h-[58px]" aria-hidden="true" />
             ))}
           </div>
+        ) : segmentos.isError ? (
+          <FalhaCompacta mensagem="Não foi possível carregar os segmentos." aoTentarNovamente={() => segmentos.refetch()} />
         ) : (
           <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Segmento de negócio">
             {segmentos.data?.map((s) => {
@@ -83,6 +86,7 @@ export function PainelControles() {
       </Bloco>
 
       <Bloco titulo="Onde?" dica={regioes.length ? undefined : "Clique nos bairros do mapa ou procure pelo nome."}>
+        {todas.isError && <FalhaCompacta mensagem="Não foi possível carregar os bairros." aoTentarNovamente={() => todas.refetch()} />}
         {regioes.length > 0 && (
           <ul className="mb-3 flex flex-wrap gap-1.5" aria-label="Bairros escolhidos">
             {regioes.map((id) => (
@@ -149,6 +153,17 @@ export function PainelControles() {
           </ToggleGroupItem>
         </ToggleGroup>
       </Bloco>
+    </div>
+  );
+}
+
+function FalhaCompacta({ mensagem, aoTentarNovamente }: { mensagem: string; aoTentarNovamente: () => void }) {
+  return (
+    <div className="rounded-md border border-nevoa bg-papel p-3" role="alert">
+      <p className="text-[13px] leading-relaxed text-tinta-suave">{mensagem}</p>
+      <Button type="button" variant="outline" size="sm" className="mt-2" onClick={aoTentarNovamente}>
+        Tentar novamente
+      </Button>
     </div>
   );
 }

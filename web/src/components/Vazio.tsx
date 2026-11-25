@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export function Vazio({ titulo, children, className }: { titulo: string; children?: React.ReactNode; className?: string }) {
   return (
@@ -9,12 +10,23 @@ export function Vazio({ titulo, children, className }: { titulo: string; childre
   );
 }
 
+export function EstadoErro({ titulo, mensagem, aoTentarNovamente }: { titulo: string; mensagem: string; aoTentarNovamente: () => void }) {
+  return (
+    <Vazio titulo={titulo} className="mx-auto max-w-xl" >
+      <p role="alert" className="leading-relaxed">{mensagem}</p>
+      <Button type="button" variant="outline" className="mt-4" onClick={aoTentarNovamente}>
+        Tentar novamente
+      </Button>
+    </Vazio>
+  );
+}
+
 /** Primeira visita: o caminho em três passos (é uma sequência de verdade). */
 export function PrimeirosPassos({ segmento, regioes }: { segmento: boolean; regioes: number }) {
   const passos = [
     { feito: segmento, texto: "Escolha o que você quer abrir" },
     { feito: regioes >= 2, texto: "Marque dois ou mais bairros no mapa" },
-    { feito: false, texto: "Compare e veja onde a oferta parece menor" },
+    { feito: false, texto: "Compare as evidências e defina o que validar" },
   ];
   return (
     <ol className="mx-auto flex max-w-3xl flex-col gap-3 px-6 py-8 sm:flex-row sm:gap-6">

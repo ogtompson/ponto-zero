@@ -7,7 +7,7 @@ import { useSelecao } from "@/lib/selecao";
 import { Aviso } from "../Aviso";
 import { FonteInfo } from "../FonteInfo";
 import { Pino } from "../Marca";
-import { Vazio } from "../Vazio";
+import { EstadoErro, Vazio } from "../Vazio";
 
 export function AbaIndicadores() {
   const { segmento, regioes } = useSelecao();
@@ -17,7 +17,7 @@ export function AbaIndicadores() {
   if (!regioes.length) return <Vazio titulo="Escolha um bairro para ver os indicadores">Clique no mapa ou use a busca ao lado.</Vazio>;
   if (salva.id && salva.isLoading) return <Carregando />;
   if (q.isLoading && !salva.snapshot) return <Carregando />;
-  if (q.isError && !salva.snapshot) return <Vazio titulo="Não deu para carregar os indicadores">{(q.error as Error).message}</Vazio>;
+  if (q.isError && !salva.snapshot) return <EstadoErro titulo="Não deu para carregar os indicadores" mensagem={(q.error as Error).message} aoTentarNovamente={() => q.refetch()} />;
   const d = salva.snapshot?.indicadores ?? q.data!;
 
   return (
@@ -64,9 +64,10 @@ export function AbaIndicadores() {
 
 export function Carregando() {
   return (
-    <div className="flex gap-3 p-4">
+    <div className="flex gap-3 overflow-hidden p-4" role="status" aria-live="polite" aria-label="Carregando resultados">
+      <span className="sr-only">Carregando resultados…</span>
       {Array.from({ length: 3 }).map((_, i) => (
-        <Skeleton key={i} className="h-56 w-[272px] shrink-0" />
+        <Skeleton key={i} className="h-56 w-[272px] shrink-0" aria-hidden="true" />
       ))}
     </div>
   );

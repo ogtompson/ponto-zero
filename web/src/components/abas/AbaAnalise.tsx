@@ -16,7 +16,7 @@ import { num } from "@/lib/formato";
 import { useSelecao } from "@/lib/selecao";
 import { cn } from "@/lib/utils";
 import { FonteInfo } from "../FonteInfo";
-import { Vazio } from "../Vazio";
+import { EstadoErro, Vazio } from "../Vazio";
 import { Carregando } from "./AbaIndicadores";
 
 const ICONE_DIMENSAO = {
@@ -181,7 +181,7 @@ export function AbaAnalise() {
     );
   }
   if (q.isLoading && !salva.snapshot?.diagnostico) return <Carregando />;
-  if (q.isError && !salva.snapshot?.diagnostico) return <Vazio titulo="Não foi possível montar o diagnóstico">{(q.error as Error).message}</Vazio>;
+  if (q.isError && !salva.snapshot?.diagnostico) return <EstadoErro titulo="Não foi possível montar o diagnóstico" mensagem={(q.error as Error).message} aoTentarNovamente={() => q.refetch()} />;
   const d = salva.snapshot?.diagnostico ?? q.data!;
   const maturidade = ROTULO_MATURIDADE[d.segmento.maturidade];
 
