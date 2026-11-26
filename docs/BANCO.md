@@ -237,7 +237,7 @@ INSERT INTO regiao (nome, tipo, cidade, estado) VALUES ('X', 'Bairro', 'Recife',
 | `categoria` | 6 | segmentos do piloto |
 | `estabelecimento` | 532 | OpenStreetMap |
 | `empresa` | 3 | demonstração: farmácia, padaria e academia (fictícias) |
-| `usuario` | 4 | demonstração, senha `pontozero2026` (2 admin, 1 analista na mesma empresa) |
+| `usuario` | 4 | demonstração, senha `pontozero2026` (3 admin; o analista é da mesma empresa do demo) |
 | `analise` | 4 | demonstração, uma ou mais por empresa |
 | `regiao_analise` | 15 | de 3 a 5 bairros por análise |
 | `relatorio` | 4 | PDF e CSV; uma análise fica sem relatório, de propósito (0,n) |
