@@ -16,7 +16,17 @@ ENV POSTGRES_DB=pontozero \
     POSTGRES_USER=pontozero \
     LANG=C.UTF-8
 
-COPY init/ /docker-entrypoint-initdb.d/
+# Ordem de execução (alfabética) na primeira subida com volume vazio:
+#   01_ddl.sql                  tabelas, tipos e restrições  (db/ddl.sql)
+#   02_indices_e_regras.sql     índices de desempenho e triggers
+#   03_views_e_funcoes.sql      views e função da análise
+#   04_seed_dml.sql             povoamento inicial            (db/seed_dml.sql)
+#   05_usuario_da_aplicacao.sh  usuário da API com permissões mínimas
+# ddl.sql e seed_dml.sql são os arquivos de entrega; aqui só ganham o número
+# que garante a ordem, sem cópia duplicada no repositório.
+COPY ddl.sql      /docker-entrypoint-initdb.d/01_ddl.sql
+COPY init/        /docker-entrypoint-initdb.d/
+COPY seed_dml.sql /docker-entrypoint-initdb.d/04_seed_dml.sql
 # remove o "\r" caso os arquivos tenham passado por um Windows (CRLF quebra o .sh)
 RUN sed -i 's/\r$//' /docker-entrypoint-initdb.d/* \
  && chmod 0755 /docker-entrypoint-initdb.d/*.sh

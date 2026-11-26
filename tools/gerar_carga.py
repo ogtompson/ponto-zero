@@ -10,7 +10,8 @@ Entrada: um JSON com os dados brutos coletados (ver docs/dados.md):
     academias e pet shops dentro do Recife
 
 Saidas:
-  - db/init/04_carga_dados.sql           -> INSERTs nas tabelas do modelo
+  - db/seed_dml.sql                      -> INSERTs de povoamento inicial (todas as 9 tabelas,
+                                            no minimo 3 registros validos em cada uma)
   - api/app/data/bairros-recife.geojson  -> poligonos simplificados para o mapa
 
 Uso:
@@ -31,7 +32,7 @@ from shapely.geometry import Point, mapping, shape
 from shapely.strtree import STRtree
 
 RAIZ = Path(__file__).resolve().parents[1]
-SAIDA_SQL = RAIZ / "db" / "init" / "04_carga_dados.sql"
+SAIDA_SQL = RAIZ / "db" / "seed_dml.sql"
 SAIDA_GEO = RAIZ / "api" / "app" / "data" / "bairros-recife.geojson"
 
 # Datas de referencia oficiais de cada pesquisa
@@ -51,6 +52,66 @@ CATEGORIAS = [
     ("Cafeteria", "Cafés e cafeterias", lambda t: t.get("amenity") == "cafe"),
     ("Academia", "Academias de ginástica e estúdios de treino", lambda t: t.get("leisure") == "fitness_centre"),
     ("Pet shop", "Lojas de produtos e serviços para animais", lambda t: t.get("shop") == "pet"),
+]
+
+
+# ---------------------------------------------------------------------------
+# Dados de demonstracao (EMPRESA, USUARIO, ANALISE, REGIAO_ANALISE e RELATORIO).
+# Ficticios e marcados como "(demonstracao)". Todos os usuarios entram com a
+# senha SENHA_DEMO (documentada no README). As datas sao fixas e no passado,
+# porque o trigger trg_analise_data recusa analise com data no futuro.
+# ---------------------------------------------------------------------------
+SENHA_DEMO = b"pontozero2026"
+
+# (nome, cnpj ou None, segmento = categoria.nome)
+EMPRESAS_DEMO = [
+    ("Rede Farma Nordeste (demonstração)", None, "Farmácia"),
+    ("Padaria Pão do Bairro (demonstração)", "11222333000181", "Padaria"),
+    ("Movimento Academias (demonstração)", "12345678000195", "Academia"),
+]
+
+# (nome, email, perfil, empresa)
+USUARIOS_DEMO = [
+    ("Demonstração PontoZero", "demo@pontozero.app", "admin", "Rede Farma Nordeste (demonstração)"),
+    ("Analista da Rede Farma", "analista@pontozero.app", "analista", "Rede Farma Nordeste (demonstração)"),
+    ("Gestão Pão do Bairro", "padaria@pontozero.app", "admin", "Padaria Pão do Bairro (demonstração)"),
+    ("Gestão Movimento Academias", "academia@pontozero.app", "admin", "Movimento Academias (demonstração)"),
+]
+
+# (empresa, nome, data_criacao, objetivo, bairros, [(data_geracao, formato), ...])
+ANALISES_DEMO = [
+    (
+        "Rede Farma Nordeste (demonstração)",
+        "Zona Norte: onde abrir a próxima farmácia",
+        "2026-11-17",
+        "Comparar Casa Amarela, Água Fria e Encruzilhada antes da visita de campo.",
+        ["Casa Amarela", "Água Fria", "Encruzilhada"],
+        [("2026-11-17", "PDF"), ("2026-11-18", "CSV")],
+    ),
+    (
+        "Rede Farma Nordeste (demonstração)",
+        "Orla sul: farmácias perto da praia",
+        "2026-11-18",
+        "Ver se Boa Viagem, Pina e Imbiribeira comportam mais uma loja.",
+        ["Boa Viagem", "Pina", "Imbiribeira"],
+        [("2026-11-19", "PDF")],
+    ),
+    (
+        "Padaria Pão do Bairro (demonstração)",
+        "Padarias no centro expandido",
+        "2026-11-19",
+        "Medir a oferta de padarias em Boa Vista, Santo Amaro, Graças e Espinheiro.",
+        ["Boa Vista", "Santo Amaro", "Graças", "Espinheiro"],
+        [("2026-11-20", "CSV")],
+    ),
+    (
+        "Movimento Academias (demonstração)",
+        "Academias na Zona Oeste",
+        "2026-11-20",
+        "Comparar Várzea, Cordeiro, Iputinga, Torre e Madalena para a primeira unidade.",
+        ["Várzea", "Cordeiro", "Iputinga", "Torre", "Madalena"],
+        [],  # analise ainda sem relatorio: ANALISE gera RELATORIO e (0,n)
+    ),
 ]
 
 
@@ -165,14 +226,67 @@ def main(caminho: str) -> None:
     estabelecimentos.sort(key=lambda x: (x["categoria"], x["bairro"], x["nome"]))
     data_osm = bruto["osm"]["osm3s"]["timestamp_osm_base"][:10]
 
+    # ---------------------------------------------- conferencias e contagem
+    nomes_bairros = {b["nome"] for b in bairros}
+    nomes_empresas = {e[0] for e in EMPRESAS_DEMO}
+    nomes_categorias = {c[0] for c in CATEGORIAS}
+    for _, _, seg in EMPRESAS_DEMO:
+        if seg not in nomes_categorias:
+            raise SystemExit(f"Segmento de demonstracao desconhecido: {seg}")
+    for _, _, _, emp in USUARIOS_DEMO:
+        if emp not in nomes_empresas:
+            raise SystemExit(f"Usuario de demonstracao com empresa desconhecida: {emp}")
+    for emp, nome, data_a, _, bairros_a, rels in ANALISES_DEMO:
+        if emp not in nomes_empresas:
+            raise SystemExit(f"Analise {nome!r} com empresa desconhecida: {emp}")
+        if not bairros_a:
+            raise SystemExit(f"Analise {nome!r} precisa de ao menos uma regiao")
+        if set(bairros_a) - nomes_bairros:
+            raise SystemExit(f"Analise {nome!r} com bairro inexistente: {set(bairros_a) - nomes_bairros}")
+        if date.fromisoformat(data_a) > date.today():
+            raise SystemExit(f"Analise {nome!r} com data no futuro: {data_a}")
+        if any(d < data_a for d, _ in rels):
+            raise SystemExit(f"Analise {nome!r} com relatorio anterior a ela")
+
+    qtd_indicadores = sum(
+        1 + (b["chave"] in domicilios) + (b["chave"] in media_moradores) + (b["chave"] in renda) + 1
+        for b in bairros
+    )
+    contagem = {
+        "categoria": len(CATEGORIAS),
+        "regiao": len(bairros),
+        "indicador": qtd_indicadores,
+        "estabelecimento": len(estabelecimentos),
+        "empresa": len(EMPRESAS_DEMO),
+        "usuario": len(USUARIOS_DEMO),
+        "analise": len(ANALISES_DEMO),
+        "regiao_analise": sum(len(a[4]) for a in ANALISES_DEMO),
+        "relatorio": sum(len(a[5]) for a in ANALISES_DEMO),
+    }
+    pequenas = [t for t, q in contagem.items() if q < 3]
+    if pequenas:
+        raise SystemExit(f"Tabelas com menos de 3 registros: {pequenas}")
+
     # ------------------------------------------------------------------- SQL
     linhas: list[str] = []
     w = linhas.append
     w("-- =====================================================================")
-    w("-- PontoZero | 04 - Carga inicial de dados (gerado por tools/gerar_carga.py)")
+    w("-- PontoZero | seed_dml.sql - Povoamento inicial do banco (INSERTs)")
+    w("--")
+    w("-- Gerado por tools/gerar_carga.py. Nao edite a mao: rode o script de novo.")
     w(f"-- Gerado em {date.today().isoformat()} a partir de fontes abertas:")
-    w("--   IBGE (Censo 2022 e 2010), Prefeitura do Recife e OpenStreetMap.")
-    w("-- Nao edite a mao: rode o script de novo se os dados mudarem.")
+    w("--   IBGE (Censo 2022 e 2010), Prefeitura do Recife e OpenStreetMap,")
+    w("--   mais empresas, usuarios e analises ficticios de demonstracao.")
+    w("--")
+    w("-- Roda depois do db/ddl.sql, num banco vazio, numa transacao so.")
+    w("-- As chaves estrangeiras sao buscadas pelo nome (bairro, segmento,")
+    w("-- empresa), nunca por numero fixo, entao a carga nao depende da ordem dos")
+    w("-- IDs. No fim, um bloco confere quantas linhas cada tabela recebeu: se um")
+    w("-- nome nao casar e uma linha ficar de fora, a transacao inteira e desfeita.")
+    w("--")
+    w("-- Linhas por tabela:")
+    for tabela, qtd in contagem.items():
+        w(f"--   {tabela:<16} {qtd:>4}")
     w("-- =====================================================================")
     w("")
     w("BEGIN;")
@@ -228,31 +342,104 @@ def main(caminho: str) -> None:
     )
     w("")
 
-    # Conta de demonstracao para a apresentacao (senha documentada no README)
-    senha_demo = bcrypt.hashpw(b"pontozero2026", bcrypt.gensalt(rounds=12)).decode()
-    w("-- Empresa e usuario de demonstracao (login: demo@pontozero.app / pontozero2026)")
-    w("INSERT INTO empresa (nome, cnpj, segmento) VALUES ('Rede Farma Nordeste (demonstração)', NULL, 'Farmácia');")
+    # ---------------------------------------------------- demonstracao
+    def id_empresa(nome: str) -> str:
+        return f"(SELECT id_empresa FROM empresa WHERE nome = {sql_txt(nome)})"
+
+    w(f"-- Empresas de demonstracao (EMPRESA): {len(EMPRESAS_DEMO)}")
+    w("INSERT INTO empresa (nome, cnpj, segmento) VALUES")
+    w(",\n".join(f"  ({sql_txt(n)}, {sql_txt(c)}, {sql_txt(seg)})" for n, c, seg in EMPRESAS_DEMO) + ";")
+    w("")
+    w(f"-- Usuarios de demonstracao (USUARIO): {len(USUARIOS_DEMO)}. Senha de todos: {SENHA_DEMO.decode()}")
+    w("-- A senha vai como hash bcrypt: o CHECK ck_usuario_senha recusa texto puro.")
+    w("INSERT INTO usuario (nome, email, senha, perfil, id_empresa) VALUES")
     w(
-        "INSERT INTO usuario (nome, email, senha, perfil, id_empresa) "
-        f"SELECT 'Demonstração PontoZero', 'demo@pontozero.app', {sql_txt(senha_demo)}, 'admin', id_empresa "
-        "FROM empresa WHERE nome = 'Rede Farma Nordeste (demonstração)';"
+        ",\n".join(
+            f"  ({sql_txt(n)}, {sql_txt(e)}, "
+            f"{sql_txt(bcrypt.hashpw(SENHA_DEMO, bcrypt.gensalt(rounds=12)).decode())}, "
+            f"{sql_txt(p)},\n   {id_empresa(emp)})"
+            for n, e, p, emp in USUARIOS_DEMO
+        )
+        + ";"
     )
     w("")
-    w("-- Uma analise salva de exemplo, com as regioes que ela inclui (REGIAO_ANALISE) e um relatorio")
-    w("WITH nova AS (")
-    w("  INSERT INTO analise (nome, data_criacao, objetivo, id_empresa)")
-    w("  SELECT 'Zona Norte: onde abrir a próxima farmácia', CURRENT_DATE,")
-    w("         'Comparar Casa Amarela, Água Fria e Encruzilhada antes da visita de campo.', id_empresa")
-    w("  FROM empresa WHERE nome = 'Rede Farma Nordeste (demonstração)'")
-    w("  RETURNING id_analise")
-    w("), regioes AS (")
-    w("  INSERT INTO regiao_analise (id_analise, id_regiao)")
-    w("  SELECT nova.id_analise, r.id_regiao FROM nova")
-    w("  JOIN regiao r ON r.nome IN ('Casa Amarela', 'Água Fria', 'Encruzilhada') AND r.cidade = 'Recife'")
-    w("  RETURNING id_analise")
-    w(")")
+    w(f"-- Analises salvas (ANALISE): {len(ANALISES_DEMO)}")
+    w("INSERT INTO analise (nome, data_criacao, objetivo, id_empresa) VALUES")
+    w(
+        ",\n".join(
+            f"  ({sql_txt(nome)}, DATE '{data}',\n   {sql_txt(obj)},\n   {id_empresa(emp)})"
+            for emp, nome, data, obj, _, _ in ANALISES_DEMO
+        )
+        + ";"
+    )
+    w("")
+    w(f"-- Regioes de cada analise (REGIAO_ANALISE, N:N): {sum(len(a[4]) for a in ANALISES_DEMO)}")
+    w("INSERT INTO regiao_analise (id_analise, id_regiao)")
+    w("SELECT a.id_analise, r.id_regiao")
+    w("FROM (VALUES")
+    w(
+        ",\n".join(
+            f"  ({sql_txt(emp)}, {sql_txt(nome)}, {sql_txt(b)})"
+            for emp, nome, _, _, bairros_a, _ in ANALISES_DEMO
+            for b in bairros_a
+        )
+    )
+    w(") AS v(empresa, analise, bairro)")
+    w("JOIN empresa e ON e.nome = v.empresa")
+    w("JOIN analise a ON a.nome = v.analise AND a.id_empresa = e.id_empresa")
+    w("JOIN regiao  r ON r.nome = v.bairro AND r.cidade = 'Recife' AND r.estado = 'PE';")
+    w("")
+    w(f"-- Exportacoes geradas (RELATORIO): {sum(len(a[5]) for a in ANALISES_DEMO)}")
     w("INSERT INTO relatorio (data_geracao, formato, id_analise)")
-    w("SELECT CURRENT_DATE, 'PDF', id_analise FROM nova;")
+    w("SELECT v.data_geracao::date, v.formato, a.id_analise")
+    w("FROM (VALUES")
+    w(
+        ",\n".join(
+            f"  ({sql_txt(emp)}, {sql_txt(nome)}, '{data}', {sql_txt(fmt)})"
+            for emp, nome, _, _, _, rels in ANALISES_DEMO
+            for data, fmt in rels
+        )
+    )
+    w(") AS v(empresa, analise, data_geracao, formato)")
+    w("JOIN empresa e ON e.nome = v.empresa")
+    w("JOIN analise a ON a.nome = v.analise AND a.id_empresa = e.id_empresa;")
+    w("")
+    w("-- ---------------------------------------------------------------------")
+    w("-- Conferencia: cada tabela recebeu exatamente as linhas esperadas (e no")
+    w("-- minimo 3), toda analise tem ao menos uma regiao (cardinalidade 1,n) e")
+    w("-- nenhum relatorio e anterior a sua analise. Se algo falhar, RAISE")
+    w("-- desfaz a transacao inteira.")
+    w("-- ---------------------------------------------------------------------")
+    w("DO $$")
+    w("DECLARE")
+    w("    t record;")
+    w("    n bigint;")
+    w("BEGIN")
+    w("    FOR t IN SELECT * FROM (VALUES")
+    w(",\n".join(f"        ({sql_txt(tab)}, {qtd})" for tab, qtd in contagem.items()))
+    w("    ) AS v(tabela, esperado) LOOP")
+    w("        EXECUTE format('SELECT count(*) FROM %I', t.tabela) INTO n;")
+    w("        IF n < 3 THEN")
+    w("            RAISE EXCEPTION 'Tabela % tem só % linha(s); o mínimo é 3', t.tabela, n;")
+    w("        END IF;")
+    w("        IF n <> t.esperado THEN")
+    w("            RAISE EXCEPTION 'Tabela % tem % linha(s), esperado %', t.tabela, n, t.esperado;")
+    w("        END IF;")
+    w("    END LOOP;")
+    w("")
+    w("    IF EXISTS (SELECT 1 FROM analise a")
+    w("               WHERE NOT EXISTS (SELECT 1 FROM regiao_analise ra WHERE ra.id_analise = a.id_analise)) THEN")
+    w("        RAISE EXCEPTION 'Há análise sem nenhuma região (ANALISE inclui REGIAO é 1,n)';")
+    w("    END IF;")
+    w("")
+    w("    IF EXISTS (SELECT 1 FROM relatorio r JOIN analise a ON a.id_analise = r.id_analise")
+    w("               WHERE r.data_geracao < a.data_criacao) THEN")
+    w("        RAISE EXCEPTION 'Há relatório gerado antes da própria análise';")
+    w("    END IF;")
+    w("")
+    w("    RAISE NOTICE 'seed_dml.sql: povoamento conferido em todas as 9 tabelas';")
+    w("END")
+    w("$$;")
     w("")
     w("COMMIT;")
     SAIDA_SQL.parent.mkdir(parents=True, exist_ok=True)

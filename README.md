@@ -30,7 +30,7 @@ Abra **http://localhost:8080**. Na primeira vez o Docker baixa as três imagens 
 | Desligar e apagar os dados | `docker compose down -v` |
 | Construir a partir do código | `docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build` |
 
-Conta de demonstração: `demo@pontozero.app`, senha `pontozero2026`. Explorar o mapa não exige conta.
+Conta de demonstração: `demo@pontozero.app`, senha `pontozero2026`. Explorar o mapa não exige conta. Outras contas de exemplo, com a mesma senha: `analista@pontozero.app` (mesma empresa, perfil analista), `padaria@pontozero.app` e `academia@pontozero.app`.
 
 O banco também fica acessível no pgAdmin/DBeaver em `localhost:55432` (banco `pontozero`, usuário `pontozero`, senha `pontozero_admin`).
 
@@ -44,6 +44,8 @@ O banco também fica acessível no pgAdmin/DBeaver em `localhost:55432` (banco `
 | Subir sem problemas e rodar | `healthcheck` nos 3 serviços e `depends_on: service_healthy`: a API espera o banco, o site espera a API |
 | Desligar e religar mantendo os dados | volume nomeado `pgdata`; testado por [`scripts/testar-persistencia.ps1`](scripts/testar-persistencia.ps1) |
 | Funcionalidades de Banco de Dados | modelo da equipe com as 9 tabelas, restrições, índices, triggers, views e função de análise: veja [docs/BANCO.md](docs/BANCO.md) |
+| Script `ddl.sql` (tabelas, tipos, PK, FK, UNIQUE, NOT NULL, CHECK) | [`db/ddl.sql`](db/ddl.sql) |
+| Script `seed_dml.sql` (INSERTs, no mínimo 3 registros por tabela) | [`db/seed_dml.sql`](db/seed_dml.sql): todas as 9 tabelas, de 3 a 532 linhas cada |
 
 A matriz completa, com as 10 histórias de usuário do Trello, está em [docs/REQUISITOS.md](docs/REQUISITOS.md). O guia de Docker para a equipe estudar está em [docs/DOCKER.md](docs/DOCKER.md).
 
@@ -59,12 +61,13 @@ flowchart LR
 
 - **web** entrega as telas e repassa `/api` para a API. Não enxerga o banco.
 - **api** é a única que fala com o banco, com um usuário de permissões mínimas (`pontozero_app`).
-- **db** cria tudo sozinho na primeira vez (scripts em [`db/init`](db/init)) e grava no volume `pgdata`.
+- **db** cria tudo sozinho na primeira vez ([`db/ddl.sql`](db/ddl.sql), os scripts de [`db/init`](db/init) e [`db/seed_dml.sql`](db/seed_dml.sql)) e grava no volume `pgdata`.
 
 Pastas:
 
 ```
-db/        imagem do PostgreSQL: modelo, índices, triggers, views, função e carga de dados
+db/        imagem do PostgreSQL: ddl.sql (tabelas e restrições), seed_dml.sql (povoamento),
+           init/ (índices, triggers, views, função, usuário da API) e testes_integridade.sql
 api/       imagem da API (FastAPI): rotas, regras das histórias e testes
 web/       imagem do front (React + Vite + Tailwind) servida pelo Nginx
 scripts/   publicar no Docker Hub e testar a persistência (Windows e Linux/Mac)
@@ -102,7 +105,8 @@ A cobertura do OpenStreetMap é parcial, e a tela avisa isso. Os dados brutos co
 ## Desenvolvimento sem Docker
 
 ```bash
-# banco: qualquer Postgres 16 com os scripts de db/init
+# banco: qualquer Postgres 16, rodando nesta ordem:
+#   db/ddl.sql, db/init/02_*.sql, db/init/03_*.sql, db/seed_dml.sql, db/init/05_*.sh
 cd api && pip install -r requirements-dev.txt
 DATABASE_URL=postgresql://pontozero_app:pontozero_app@localhost:55432/pontozero uvicorn app.main:app --reload
 python -m pytest -q tests          # 14 testes, um por critério das histórias

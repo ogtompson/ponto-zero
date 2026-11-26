@@ -20,14 +20,14 @@ Extras que a disciplina cobre: build em duas etapas (api e web), usuário sem ro
 
 | Item | Onde |
 |---|---|
-| As 9 tabelas do DER, com os mesmos nomes | [`01_schema.sql`](../db/init/01_schema.sql) |
-| Chaves primárias, estrangeiras e cardinalidades | `01_schema.sql` (ver tabela de cardinalidades em BANCO.md) |
-| Restrições (UNIQUE, CHECK, NOT NULL) | `01_schema.sql` |
+| Script `ddl.sql`: as 9 tabelas do DER, com os mesmos nomes, tipos e restrições | [`db/ddl.sql`](../db/ddl.sql) |
+| Chaves primárias, estrangeiras e cardinalidades | `ddl.sql`, com nomes `pk_`, `fk_` (ver tabela de cardinalidades em BANCO.md) |
+| Restrições (UNIQUE, CHECK, NOT NULL) | `ddl.sql`, com nomes `uq_` e `ck_`; provadas por [`db/testes_integridade.sql`](../db/testes_integridade.sql) |
 | Índices | [`02_indices_e_regras.sql`](../db/init/02_indices_e_regras.sql) |
 | Triggers (e-mail em minúsculas, data da análise) | `02_indices_e_regras.sql` |
 | Views | [`03_views_e_funcoes.sql`](../db/init/03_views_e_funcoes.sql) |
 | Função SQL com a regra de negócio da HU-009 | `fn_analise_demanda_oferta` em `03_views_e_funcoes.sql` |
-| Carga de dados reais | [`04_carga_dados.sql`](../db/init/04_carga_dados.sql), gerado por [`tools/gerar_carga.py`](../tools/gerar_carga.py) |
+| Script `seed_dml.sql`: povoamento inicial, no mínimo 3 registros por tabela | [`db/seed_dml.sql`](../db/seed_dml.sql), gerado por [`tools/gerar_carga.py`](../tools/gerar_carga.py), com dados reais e de demonstração |
 | Usuário com menor privilégio | [`05_usuario_da_aplicacao.sh`](../db/init/05_usuario_da_aplicacao.sh) |
 | CRUD pela aplicação | cadastro (C), análises salvas (C, R, D), relatórios (C) |
 

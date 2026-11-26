@@ -21,7 +21,7 @@ docker compose ps                   # containers rodando e se estão saudáveis
 
 Cada pasta tem um `Dockerfile`:
 
-- [`db/Dockerfile`](../db/Dockerfile): parte do Postgres oficial e copia [`db/init`](../db/init) para `/docker-entrypoint-initdb.d`. O Postgres executa esses scripts sozinho, uma vez, quando o volume está vazio.
+- [`db/Dockerfile`](../db/Dockerfile): parte do Postgres oficial e copia [`db/ddl.sql`](../db/ddl.sql) (como `01_ddl.sql`), a pasta [`db/init`](../db/init) e [`db/seed_dml.sql`](../db/seed_dml.sql) (como `04_seed_dml.sql`) para `/docker-entrypoint-initdb.d`. O Postgres executa esses scripts sozinho, em ordem alfabética, uma vez, quando o volume está vazio.
 - [`api/Dockerfile`](../api/Dockerfile): **build em duas etapas**. A primeira instala as bibliotecas do `requirements.txt`; a segunda copia só o resultado. A imagem roda com um usuário comum, sem root.
 - [`web/Dockerfile`](../web/Dockerfile): também em duas etapas. O Node compila o React; a imagem final leva só os arquivos prontos e o Nginx. O Node não vai para a imagem final.
 

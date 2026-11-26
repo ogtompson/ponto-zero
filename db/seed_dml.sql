@@ -1,8 +1,27 @@
 -- =====================================================================
--- PontoZero | 04 - Carga inicial de dados (gerado por tools/gerar_carga.py)
--- Gerado em 2026-11-17 a partir de fontes abertas:
---   IBGE (Censo 2022 e 2010), Prefeitura do Recife e OpenStreetMap.
--- Nao edite a mao: rode o script de novo se os dados mudarem.
+-- PontoZero | seed_dml.sql - Povoamento inicial do banco (INSERTs)
+--
+-- Gerado por tools/gerar_carga.py. Nao edite a mao: rode o script de novo.
+-- Gerado em 2026-11-26 a partir de fontes abertas:
+--   IBGE (Censo 2022 e 2010), Prefeitura do Recife e OpenStreetMap,
+--   mais empresas, usuarios e analises ficticios de demonstracao.
+--
+-- Roda depois do db/ddl.sql, num banco vazio, numa transacao so.
+-- As chaves estrangeiras sao buscadas pelo nome (bairro, segmento,
+-- empresa), nunca por numero fixo, entao a carga nao depende da ordem dos
+-- IDs. No fim, um bloco confere quantas linhas cada tabela recebeu: se um
+-- nome nao casar e uma linha ficar de fora, a transacao inteira e desfeita.
+--
+-- Linhas por tabela:
+--   categoria           6
+--   regiao             94
+--   indicador         470
+--   estabelecimento   532
+--   empresa             3
+--   usuario             4
+--   analise             4
+--   regiao_analise     15
+--   relatorio           4
 -- =====================================================================
 
 BEGIN;
@@ -1133,24 +1152,118 @@ JOIN categoria c ON c.nome = v.categoria;
 -- Metadados da camada de oferta (lidos pela API para exibir fonte e data - HU-007)
 COMMENT ON TABLE estabelecimento IS 'fonte=OpenStreetMap, contribuidores (licença ODbL);data_referencia=2026-11-17';
 
--- Empresa e usuario de demonstracao (login: demo@pontozero.app / pontozero2026)
-INSERT INTO empresa (nome, cnpj, segmento) VALUES ('Rede Farma Nordeste (demonstração)', NULL, 'Farmácia');
-INSERT INTO usuario (nome, email, senha, perfil, id_empresa) SELECT 'Demonstração PontoZero', 'demo@pontozero.app', '$2b$12$ES88S7LOh33zuhbtIJ88vu.8vfdzsFEnGQS7W8yoGeVL4c6lHFPC2', 'admin', id_empresa FROM empresa WHERE nome = 'Rede Farma Nordeste (demonstração)';
+-- Empresas de demonstracao (EMPRESA): 3
+INSERT INTO empresa (nome, cnpj, segmento) VALUES
+  ('Rede Farma Nordeste (demonstração)', NULL, 'Farmácia'),
+  ('Padaria Pão do Bairro (demonstração)', '11222333000181', 'Padaria'),
+  ('Movimento Academias (demonstração)', '12345678000195', 'Academia');
 
--- Uma analise salva de exemplo, com as regioes que ela inclui (REGIAO_ANALISE) e um relatorio
-WITH nova AS (
-  INSERT INTO analise (nome, data_criacao, objetivo, id_empresa)
-  SELECT 'Zona Norte: onde abrir a próxima farmácia', CURRENT_DATE,
-         'Comparar Casa Amarela, Água Fria e Encruzilhada antes da visita de campo.', id_empresa
-  FROM empresa WHERE nome = 'Rede Farma Nordeste (demonstração)'
-  RETURNING id_analise
-), regioes AS (
-  INSERT INTO regiao_analise (id_analise, id_regiao)
-  SELECT nova.id_analise, r.id_regiao FROM nova
-  JOIN regiao r ON r.nome IN ('Casa Amarela', 'Água Fria', 'Encruzilhada') AND r.cidade = 'Recife'
-  RETURNING id_analise
-)
+-- Usuarios de demonstracao (USUARIO): 4. Senha de todos: pontozero2026
+-- A senha vai como hash bcrypt: o CHECK ck_usuario_senha recusa texto puro.
+INSERT INTO usuario (nome, email, senha, perfil, id_empresa) VALUES
+  ('Demonstração PontoZero', 'demo@pontozero.app', '$2b$12$HKIu0Vtpee/Gx4LgQ7p0eOh0kyCQKTyQz73afMj8eMW3GuQFvkoiW', 'admin',
+   (SELECT id_empresa FROM empresa WHERE nome = 'Rede Farma Nordeste (demonstração)')),
+  ('Analista da Rede Farma', 'analista@pontozero.app', '$2b$12$2RCOjRdpyGn.C3dYl/KuNeXl9Ws7kVD8VjacSIhH3cnUqlwMbAkWa', 'analista',
+   (SELECT id_empresa FROM empresa WHERE nome = 'Rede Farma Nordeste (demonstração)')),
+  ('Gestão Pão do Bairro', 'padaria@pontozero.app', '$2b$12$e1Aszh1DtcYPFUEHeRba3OSLAzn5/9WcPLVqm.mAEgnMgiTPcai7K', 'admin',
+   (SELECT id_empresa FROM empresa WHERE nome = 'Padaria Pão do Bairro (demonstração)')),
+  ('Gestão Movimento Academias', 'academia@pontozero.app', '$2b$12$mzOxGljw1ss3UzTcSt79Ee4dJrfrbqqVfBDCaG28MDFuD9xQI4KVy', 'admin',
+   (SELECT id_empresa FROM empresa WHERE nome = 'Movimento Academias (demonstração)'));
+
+-- Analises salvas (ANALISE): 4
+INSERT INTO analise (nome, data_criacao, objetivo, id_empresa) VALUES
+  ('Zona Norte: onde abrir a próxima farmácia', DATE '2026-11-17',
+   'Comparar Casa Amarela, Água Fria e Encruzilhada antes da visita de campo.',
+   (SELECT id_empresa FROM empresa WHERE nome = 'Rede Farma Nordeste (demonstração)')),
+  ('Orla sul: farmácias perto da praia', DATE '2026-11-18',
+   'Ver se Boa Viagem, Pina e Imbiribeira comportam mais uma loja.',
+   (SELECT id_empresa FROM empresa WHERE nome = 'Rede Farma Nordeste (demonstração)')),
+  ('Padarias no centro expandido', DATE '2026-11-19',
+   'Medir a oferta de padarias em Boa Vista, Santo Amaro, Graças e Espinheiro.',
+   (SELECT id_empresa FROM empresa WHERE nome = 'Padaria Pão do Bairro (demonstração)')),
+  ('Academias na Zona Oeste', DATE '2026-11-20',
+   'Comparar Várzea, Cordeiro, Iputinga, Torre e Madalena para a primeira unidade.',
+   (SELECT id_empresa FROM empresa WHERE nome = 'Movimento Academias (demonstração)'));
+
+-- Regioes de cada analise (REGIAO_ANALISE, N:N): 15
+INSERT INTO regiao_analise (id_analise, id_regiao)
+SELECT a.id_analise, r.id_regiao
+FROM (VALUES
+  ('Rede Farma Nordeste (demonstração)', 'Zona Norte: onde abrir a próxima farmácia', 'Casa Amarela'),
+  ('Rede Farma Nordeste (demonstração)', 'Zona Norte: onde abrir a próxima farmácia', 'Água Fria'),
+  ('Rede Farma Nordeste (demonstração)', 'Zona Norte: onde abrir a próxima farmácia', 'Encruzilhada'),
+  ('Rede Farma Nordeste (demonstração)', 'Orla sul: farmácias perto da praia', 'Boa Viagem'),
+  ('Rede Farma Nordeste (demonstração)', 'Orla sul: farmácias perto da praia', 'Pina'),
+  ('Rede Farma Nordeste (demonstração)', 'Orla sul: farmácias perto da praia', 'Imbiribeira'),
+  ('Padaria Pão do Bairro (demonstração)', 'Padarias no centro expandido', 'Boa Vista'),
+  ('Padaria Pão do Bairro (demonstração)', 'Padarias no centro expandido', 'Santo Amaro'),
+  ('Padaria Pão do Bairro (demonstração)', 'Padarias no centro expandido', 'Graças'),
+  ('Padaria Pão do Bairro (demonstração)', 'Padarias no centro expandido', 'Espinheiro'),
+  ('Movimento Academias (demonstração)', 'Academias na Zona Oeste', 'Várzea'),
+  ('Movimento Academias (demonstração)', 'Academias na Zona Oeste', 'Cordeiro'),
+  ('Movimento Academias (demonstração)', 'Academias na Zona Oeste', 'Iputinga'),
+  ('Movimento Academias (demonstração)', 'Academias na Zona Oeste', 'Torre'),
+  ('Movimento Academias (demonstração)', 'Academias na Zona Oeste', 'Madalena')
+) AS v(empresa, analise, bairro)
+JOIN empresa e ON e.nome = v.empresa
+JOIN analise a ON a.nome = v.analise AND a.id_empresa = e.id_empresa
+JOIN regiao  r ON r.nome = v.bairro AND r.cidade = 'Recife' AND r.estado = 'PE';
+
+-- Exportacoes geradas (RELATORIO): 4
 INSERT INTO relatorio (data_geracao, formato, id_analise)
-SELECT CURRENT_DATE, 'PDF', id_analise FROM nova;
+SELECT v.data_geracao::date, v.formato, a.id_analise
+FROM (VALUES
+  ('Rede Farma Nordeste (demonstração)', 'Zona Norte: onde abrir a próxima farmácia', '2026-11-17', 'PDF'),
+  ('Rede Farma Nordeste (demonstração)', 'Zona Norte: onde abrir a próxima farmácia', '2026-11-18', 'CSV'),
+  ('Rede Farma Nordeste (demonstração)', 'Orla sul: farmácias perto da praia', '2026-11-19', 'PDF'),
+  ('Padaria Pão do Bairro (demonstração)', 'Padarias no centro expandido', '2026-11-20', 'CSV')
+) AS v(empresa, analise, data_geracao, formato)
+JOIN empresa e ON e.nome = v.empresa
+JOIN analise a ON a.nome = v.analise AND a.id_empresa = e.id_empresa;
+
+-- ---------------------------------------------------------------------
+-- Conferencia: cada tabela recebeu exatamente as linhas esperadas (e no
+-- minimo 3), toda analise tem ao menos uma regiao (cardinalidade 1,n) e
+-- nenhum relatorio e anterior a sua analise. Se algo falhar, RAISE
+-- desfaz a transacao inteira.
+-- ---------------------------------------------------------------------
+DO $$
+DECLARE
+    t record;
+    n bigint;
+BEGIN
+    FOR t IN SELECT * FROM (VALUES
+        ('categoria', 6),
+        ('regiao', 94),
+        ('indicador', 470),
+        ('estabelecimento', 532),
+        ('empresa', 3),
+        ('usuario', 4),
+        ('analise', 4),
+        ('regiao_analise', 15),
+        ('relatorio', 4)
+    ) AS v(tabela, esperado) LOOP
+        EXECUTE format('SELECT count(*) FROM %I', t.tabela) INTO n;
+        IF n < 3 THEN
+            RAISE EXCEPTION 'Tabela % tem só % linha(s); o mínimo é 3', t.tabela, n;
+        END IF;
+        IF n <> t.esperado THEN
+            RAISE EXCEPTION 'Tabela % tem % linha(s), esperado %', t.tabela, n, t.esperado;
+        END IF;
+    END LOOP;
+
+    IF EXISTS (SELECT 1 FROM analise a
+               WHERE NOT EXISTS (SELECT 1 FROM regiao_analise ra WHERE ra.id_analise = a.id_analise)) THEN
+        RAISE EXCEPTION 'Há análise sem nenhuma região (ANALISE inclui REGIAO é 1,n)';
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM relatorio r JOIN analise a ON a.id_analise = r.id_analise
+               WHERE r.data_geracao < a.data_criacao) THEN
+        RAISE EXCEPTION 'Há relatório gerado antes da própria análise';
+    END IF;
+
+    RAISE NOTICE 'seed_dml.sql: povoamento conferido em todas as 9 tabelas';
+END
+$$;
 
 COMMIT;

@@ -1,9 +1,10 @@
 -- =====================================================================
 -- PontoZero | 02 - Índices e regras automáticas (triggers)
+--
+-- Roda depois do db/ddl.sql. O índice único de e-mail (uq_usuario_email)
+-- é uma restrição de integridade, por isso fica no ddl.sql; aqui ficam só
+-- os índices de desempenho e os triggers.
 -- =====================================================================
-
--- E-mail único sem diferenciar maiúsculas/minúsculas (HU-001 RN03)
-CREATE UNIQUE INDEX ux_usuario_email ON usuario (lower(email));
 
 -- Índices nas chaves estrangeiras usadas nos JOINs da aplicação
 CREATE INDEX ix_usuario_empresa            ON usuario (id_empresa);
