@@ -1,0 +1,40 @@
+﻿PontoZero;Relatório de análise territorial
+Gerado em;25/11/2026 22:23
+Segmento;Farmácia
+Regiões;Água Fria, Boa Viagem
+
+Oferta formal e referência
+Região;Resultado;Observados;Referência proporcional;Relação observado/referência;Motivo
+Água Fria;Oferta formal próxima ou acima da referência;28;27,2;1,03;28 encontrado(s) para 27,2 esperado(s)
+Boa Viagem;Oferta formal próxima ou acima da referência;146;87,9;1,66;146 encontrado(s) para 87,9 esperado(s)
+
+Critérios
+Base populacional;População residente usada apenas para normalizar a comparação
+Oferta formal;CNPJs ativos de farmácia associados ao bairro no recorte CNAE
+Referência da cidade;6,99 estabelecimentos por 10 mil habitantes no Recife
+Referência proporcional;Referência × população ÷ 10 mil
+Oferta formal abaixo da referência;Referência proporcional de pelo menos 2 registros e oferta formal de até 50% dessa referência
+
+Comparação
+Indicador;Unidade;Água Fria;Boa Viagem
+População residente;habitantes;39.012,00;125.805,00
+Domicílios ocupados;domicílios;13.482,00;50.663,00
+Moradores por domicílio;pessoas;2,89;2,48
+Renda média domiciliar;R$ por mês;1.189,95;7.108,69
+Área;km²;1,93;8,34
+Densidade demográfica;hab/km²;20.213,47;15.084,53
+Estabelecimentos (Farmácia);estabelecimentos;28;146
+Por 10 mil habitantes;estabelecimentos;7,18;11,61
+
+Fonte;Data de referência;Usada em
+IBGE, Censo Demográfico 2022 (SIDRA 9923);31/07/2022;População residente
+IBGE, Censo Demográfico 2022 (SIDRA 9922);31/07/2022;Domicílios ocupados, Moradores por domicílio
+IBGE, Censo Demográfico 2010 (SIDRA 3345);31/07/2010;Renda média domiciliar
+Prefeitura do Recife, Portal de Dados Abertos;data de referência não informada;Área
+Cálculo PontoZero: população (IBGE) ÷ área (Prefeitura);31/07/2022;Densidade demográfica
+Prefeitura do Recife, Empresas Ativas do Recife (ODbL);03/11/2026;Estabelecimentos (Farmácia)
+
+Avisos
+População, renda e número de estabelecimentos são aproximações e, sozinhos, não demonstram demanda não atendida.
+A oferta contabiliza empresas formais ativas nos CNAEs definidos para cada segmento. Ela não inclui informalidade e o recorte CNAE pode abranger atividades similares.
+Este resultado não é recomendação definitiva de investimento e não substitui um estudo de viabilidade.

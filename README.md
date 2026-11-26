@@ -6,11 +6,7 @@
   Compare bairros do Recife e investigue como a oferta formal do seu segmento se relaciona com a referência municipal.
 </p>
 
-<p align="center">
-  Projeto final de <b>Infraestrutura de Software</b> e <b>Banco de Dados</b>, CESAR School, 2026.2
-</p>
-
-![Oferta formal e referência municipal](docs/img/analise.png)
+![Ensaio de comparação territorial](docs/evidencias/ensaio-farmacia-agua-fria-boa-viagem.png)
 
 ## Rodar localmente em um comando
 
@@ -32,6 +28,8 @@ Abra **http://localhost:8080**. O override local é carregado automaticamente e 
 | Usar somente imagens publicadas | `docker compose -f docker-compose.yml up -d` |
 
 Conta de demonstração: `demo@pontozero.app`, senha `pontozero2026`. Explorar o mapa não exige conta.
+
+Para apresentar o ciclo completo sem improviso, siga o [roteiro de demonstração](docs/ROTEIRO_DEMONSTRACAO.md).
 
 O banco também fica acessível no pgAdmin/DBeaver em `localhost:55432` (banco `pontozero`, usuário `pontozero`, senha `pontozero_admin`).
 
@@ -138,7 +136,3 @@ Tipografia: Archivo (variável, com eixo de largura). Cores da marca: marinho `#
 | Pedro Paes | Front-end |
 | Caio Marques | Front-end e QA |
 | Paulo Henrique | Desenvolvimento |
-
-<p>
-  <img src="web/public/marca/cesar-school.png" alt="CESAR School" width="56" />
-</p>

@@ -148,14 +148,16 @@ O mapa continua sendo uma superfície cartográfica alimentada pelos dados do Po
 
 ### Bloco E — ensaio de entrega
 
-1. Subir o projeto do zero com `docker compose up -d --build`.
-2. Confirmar os 3 serviços saudáveis.
-3. Criar uma análise com o usuário de demonstração.
-4. Salvar e exportar.
-5. Executar `docker compose down` e subir novamente.
-6. Confirmar persistência da análise e do volume.
-7. Preparar um caso guiado com 1 segmento e 2 bairros contrastantes.
-8. Levar uma captura/PDF de contingência caso a internet falhe.
+**Estado em 25/11:** build, integração e fluxo real aprovados. O caso Farmácia em Água Fria e Boa Viagem foi salvo com a conta de demonstração e exportado em PDF e CSV. A inspeção visual do PDF removeu uma referência acadêmica residual do produto e ganhou teste de regressão. Roteiro e contingência estão em [`ROTEIRO_DEMONSTRACAO.md`](ROTEIRO_DEMONSTRACAO.md).
+
+1. [x] Subir o projeto do zero com `docker compose up -d --build`.
+2. [x] Confirmar os 3 serviços saudáveis.
+3. [x] Criar uma análise com o usuário de demonstração.
+4. [x] Salvar e exportar.
+5. [x] Executar `docker compose down` e subir novamente.
+6. [x] Confirmar persistência da análise e do volume.
+7. [x] Preparar um caso guiado com 1 segmento e 2 bairros contrastantes.
+8. [x] Levar uma captura/PDF de contingência caso a internet falhe.
 
 **Pronto quando:** outra pessoa consegue seguir o roteiro sem ajuda do desenvolvedor.
 
@@ -197,18 +199,18 @@ Uma fonte só entra no produto quando tiver licença, referência temporal, gran
 
 ## 7. Critério de aceite do MVP próximo
 
-- [ ] Oferta formal não depende do OSM.
-- [ ] Cada número mostra fonte e data.
-- [ ] Ausência de registro não aparece como zero confirmado.
-- [ ] O diagnóstico é a leitura principal, não a última aba.
-- [ ] Pelo menos 2 segmentos têm direcionadores próprios documentados.
-- [ ] Pelo menos 2 bairros contrastantes foram verificados manualmente.
-- [ ] Conta, salvamento, snapshot e exportação funcionam.
-- [ ] Compose sobe do zero e preserva dados após reinício.
-- [ ] Fluxo público não produz erro no console.
-- [ ] A experiência principal funciona por teclado e em 390 px.
-- [ ] Infraestrutura aparece apenas na área administrativa.
-- [ ] README, interface e metodologia descrevem as mesmas fontes.
+- [x] Oferta formal não depende do OSM.
+- [x] Cada número mostra fonte e data.
+- [x] Ausência de registro não aparece como zero confirmado.
+- [x] O diagnóstico é a leitura principal, não a última aba.
+- [x] Pelo menos 2 segmentos têm direcionadores próprios documentados.
+- [x] Pelo menos 2 bairros contrastantes foram verificados manualmente.
+- [x] Conta, salvamento, snapshot e exportação funcionam.
+- [x] Compose sobe do zero e preserva dados após reinício.
+- [x] Fluxo público não produz erro no console.
+- [x] A experiência principal funciona por teclado e em 390 px.
+- [x] Infraestrutura aparece apenas na área administrativa.
+- [x] README, interface e metodologia descrevem as mesmas fontes.
 
 ## 8. Itens deliberadamente fora do recorte da apresentação final
 
