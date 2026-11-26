@@ -16,9 +16,12 @@ curl -sf -c "$JAR" -H 'Content-Type: application/json' \
   -d "{\"nome\":\"Teste\",\"email\":\"$EMAIL\",\"senha\":\"$SENHA\",\"empresa\":\"Teste\",\"segmento\":\"Padaria\"}" \
   "$API/auth/cadastro" >/dev/null
 IDS="$(curl -sf "$API/regioes" | grep -o '"id_regiao":[0-9]*' | head -2 | cut -d: -f2 | paste -sd, -)"
+SEGMENTO_ID="$(curl -sf "$API/segmentos" | grep -o '{[^{}]*"nome":"Padaria"[^{}]*}' | grep -o '"id_categoria":[0-9]*' | head -1 | cut -d: -f2)"
+[ -n "$SEGMENTO_ID" ] || { echo "[falhou] segmento Padaria não encontrado"; exit 1; }
 ID="$(curl -sf -b "$JAR" -H 'Content-Type: application/json' \
-  -d "{\"nome\":\"Persistência\",\"segmento\":\"Padaria\",\"regioes\":[$IDS]}" "$API/analises" \
+  -d "{\"nome\":\"Persistência\",\"segmento\":$SEGMENTO_ID,\"regioes\":[$IDS]}" "$API/analises" \
   | grep -o '"id_analise":[0-9]*' | head -1 | cut -d: -f2)"
+[ -n "$ID" ] || { echo "[falhou] API não devolveu o id da análise"; exit 1; }
 VOLUME="$(curl -sf "$API/status" | campo volume_inicializado_em)"
 echo "[ok] conta $EMAIL e análise $ID gravadas; volume criado em $VOLUME"
 

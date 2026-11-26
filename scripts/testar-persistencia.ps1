@@ -7,6 +7,7 @@
 #>
 param([int]$Ciclos = 3, [switch]$Build)
 
+$ErrorActionPreference = "Stop"
 $raiz = Split-Path $PSScriptRoot -Parent
 Set-Location $raiz
 $arquivos = if ($Build) { @("-f", "docker-compose.yml", "-f", "docker-compose.build.yml") } else { @("-f", "docker-compose.yml") }
@@ -33,8 +34,12 @@ Invoke-RestMethod "$base/auth/cadastro" -Method Post -Body $corpo -ContentType "
 Ok "conta criada: $email"
 $regioes = Invoke-RestMethod "$base/regioes"
 $ids = @($regioes | Select-Object -First 2 | ForEach-Object { $_.id_regiao })
-$analise = @{ nome = "Análise de persistência"; segmento = "Padaria"; regioes = $ids } | ConvertTo-Json
+$segmentos = Invoke-RestMethod "$base/segmentos"
+$padaria = $segmentos | Where-Object { $_.nome -eq "Padaria" } | Select-Object -First 1
+if (-not $padaria) { Falha "o segmento Padaria não foi encontrado" }
+$analise = @{ nome = "Análise de persistência"; segmento = $padaria.id_categoria; regioes = $ids } | ConvertTo-Json
 $criada = Invoke-RestMethod "$base/analises" -Method Post -Body $analise -ContentType "application/json; charset=utf-8" -WebSession $sessao
+if (-not $criada.id_analise) { Falha "a API não devolveu o id da análise" }
 Ok "análise salva (id $($criada.id_analise))"
 $antes = Invoke-RestMethod "$base/status"
 Write-Host "  volume criado em $($antes.banco.volume_inicializado_em), $($antes.banco.contagens.usuario) usuário(s), $($antes.banco.contagens.analise) análise(s)"
