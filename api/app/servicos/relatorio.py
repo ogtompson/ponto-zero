@@ -81,11 +81,8 @@ def gerar_pdf(comparacao: dict, analise: dict, usuario: dict | None) -> bytes:
         canvas.line(18 * mm, 16 * mm, A4[0] - 18 * mm, 16 * mm)
         canvas.setFont("Helvetica", 7.5)
         canvas.setFillColor(TINTA_SUAVE)
-        canvas.drawString(18 * mm, 11 * mm, "PontoZero, projeto acadêmico da CESAR School. " + AVISO_NAO_RECOMENDACAO)
+        canvas.drawString(18 * mm, 11 * mm, "PontoZero · Inteligência territorial. " + AVISO_NAO_RECOMENDACAO)
         canvas.drawRightString(A4[0] - 18 * mm, 6.5 * mm, f"página {doc.page}")
-        cesar = ASSETS / "cesar-school.png"
-        if cesar.exists():
-            canvas.drawImage(str(cesar), 18 * mm, 4.5 * mm, width=6.5 * mm, height=6 * mm, mask="auto")
         canvas.restoreState()
 
     doc = SimpleDocTemplate(

@@ -49,7 +49,7 @@ services:
     environment:
       # "db" é o nome do serviço acima: o Docker resolve para o IP do container
       DATABASE_URL: postgresql://${APP_DB_USER:-pontozero_app}:${APP_DB_PASSWORD:-pontozero_app}@db:5432/${POSTGRES_DB:-pontozero}
-      JWT_SECRET: ${JWT_SECRET:-troque-este-segredo}
+      JWT_SECRET: ${JWT_SECRET:-pontozero-dev-local-troque-em-producao-2026}
       APP_VERSION: ${TAG:-1.0}
       TZ: America/Recife
     depends_on:

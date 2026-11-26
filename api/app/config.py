@@ -10,7 +10,7 @@ class Config:
     database_url: str = os.getenv(
         "DATABASE_URL", "postgresql://pontozero_app:pontozero_app@db:5432/pontozero"
     )
-    jwt_segredo: str = os.getenv("JWT_SECRET", "troque-este-segredo-no-arquivo-env")
+    jwt_segredo: str = os.getenv("JWT_SECRET", "pontozero-dev-local-troque-em-producao-2026")
     sessao_horas: int = int(os.getenv("SESSAO_HORAS", "8"))
     cookie_seguro: bool = os.getenv("COOKIE_SECURE", "false").lower() == "true"
     versao: str = os.getenv("APP_VERSION", "1.0.0")

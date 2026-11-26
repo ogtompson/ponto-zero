@@ -9,7 +9,7 @@ FROM postgres:16-alpine
 
 LABEL org.opencontainers.image.title="pontozero-db" \
       org.opencontainers.image.description="Banco PostgreSQL do PontoZero: modelo, views, função de análise e carga de dados reais" \
-      org.opencontainers.image.vendor="Equipe PontoZero - CESAR School"
+      org.opencontainers.image.vendor="Equipe PontoZero"
 
 # valores padrão; o docker-compose.yml pode sobrescrever
 ENV POSTGRES_DB=pontozero \

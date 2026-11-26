@@ -15,7 +15,7 @@ RUN pip install -r requirements.txt
 FROM python:3.12-slim
 LABEL org.opencontainers.image.title="pontozero-api" \
       org.opencontainers.image.description="API do PontoZero (FastAPI)" \
-      org.opencontainers.image.vendor="Equipe PontoZero - CESAR School"
+      org.opencontainers.image.vendor="Equipe PontoZero"
 
 ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \

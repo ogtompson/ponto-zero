@@ -219,3 +219,36 @@ def test_exportacao_csv_tem_fontes_e_avisos(cliente):
     texto = r.content.decode("utf-8-sig")
     assert "Fonte;Data de referência;Usada em" in texto
     assert "não é recomendação definitiva de investimento" in texto
+
+
+def test_exportacao_pdf_preserva_apenas_a_marca_do_produto(cliente, monkeypatch):
+    from reportlab.pdfgen.canvas import Canvas
+
+    textos = []
+    imagens = []
+    draw_string_original = Canvas.drawString
+    draw_image_original = Canvas.drawImage
+
+    def registrar_texto(canvas, x, y, texto, *args, **kwargs):
+        textos.append(str(texto))
+        return draw_string_original(canvas, x, y, texto, *args, **kwargs)
+
+    def registrar_imagem(canvas, imagem, *args, **kwargs):
+        imagens.append(str(imagem))
+        return draw_image_original(canvas, imagem, *args, **kwargs)
+
+    monkeypatch.setattr(Canvas, "drawString", registrar_texto)
+    monkeypatch.setattr(Canvas, "drawImage", registrar_imagem)
+
+    farmacia = id_segmento(cliente, "Farmácia")
+    a, b = ids(cliente, "Água Fria", "Boa Viagem")
+    resposta = cliente.post(
+        "/api/exportacoes",
+        json={"segmento": farmacia, "regioes": [a, b], "formato": "PDF"},
+    )
+
+    assert resposta.status_code == 200
+    conteudo_desenhado = " ".join(textos + imagens).lower()
+    assert "pontozero" in conteudo_desenhado
+    assert "cesar" not in conteudo_desenhado
+    assert "projeto acadêmico" not in conteudo_desenhado

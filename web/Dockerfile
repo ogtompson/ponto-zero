@@ -14,7 +14,7 @@ RUN npm run build
 FROM nginx:1.27-alpine
 LABEL org.opencontainers.image.title="pontozero-web" \
       org.opencontainers.image.description="Front-end do PontoZero (React) servido pelo Nginx" \
-      org.opencontainers.image.vendor="Equipe PontoZero - CESAR School"
+      org.opencontainers.image.vendor="Equipe PontoZero"
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /web/dist /usr/share/nginx/html
